@@ -1,0 +1,105 @@
+@import "@rainbow-me/rainbowkit/styles.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    background-color: #05050b;
+    color: #e5e7eb;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-image: radial-gradient(
+        ellipse 80% 60% at 50% -10%,
+        rgba(124, 58, 237, 0.18),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 60% 50% at 80% 110%,
+        rgba(59, 130, 246, 0.12),
+        transparent 70%
+      );
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(167, 139, 250, 0.35);
+    color: #fff;
+  }
+
+  /* subtle starfield */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(1px 1px at 70% 80%, rgba(167, 139, 250, 0.3), transparent 50%),
+      radial-gradient(1px 1px at 50% 50%, rgba(255, 255, 255, 0.25), transparent 50%),
+      radial-gradient(1px 1px at 90% 20%, rgba(196, 181, 253, 0.35), transparent 50%),
+      radial-gradient(1px 1px at 10% 75%, rgba(255, 255, 255, 0.2), transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+@layer components {
+  .nox-card {
+    @apply rounded-2xl border border-veil bg-night/60 backdrop-blur-sm relative overflow-hidden;
+    background-image: linear-gradient(
+      180deg,
+      rgba(167, 139, 250, 0.04) 0%,
+      rgba(167, 139, 250, 0) 100%
+    );
+  }
+
+  .nox-card-hover {
+    @apply transition-colors hover:border-iris/40;
+  }
+
+  .nox-btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_-12px_rgba(167,139,250,0.7)] transition-all hover:shadow-[0_0_40px_-8px_rgba(167,139,250,0.9)] disabled:opacity-50 disabled:cursor-not-allowed;
+    background-image: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+  }
+
+  .nox-btn-ghost {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-fog border border-veil bg-night/40 transition-colors hover:border-iris/40 hover:bg-veil/40 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .nox-input {
+    @apply w-full rounded-xl border border-veil bg-night/60 px-4 py-3 text-fog placeholder:text-mist focus:border-iris/60 focus:outline-none focus:ring-2 focus:ring-iris/20 transition-colors;
+  }
+
+  .nox-label {
+    @apply block text-sm font-medium text-mist mb-2;
+  }
+
+  .nox-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-veil/60 border border-iris/20 px-3 py-1 text-xs font-medium text-iris;
+  }
+
+  .nox-divider {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-iris/30 to-transparent;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 50%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .glow-violet {
+    box-shadow: 0 0 60px -20px rgba(167, 139, 250, 0.6);
+  }
+}

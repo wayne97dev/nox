@@ -1,0 +1,34 @@
+# Foundry
+cache/
+out/
+broadcast/
+foundry.lock
+.foundry/
+
+# Node / Next.js (under web/)
+web/node_modules/
+web/.next/
+web/out/
+web/build/
+web/.vercel/
+web/next-env.d.ts
+web/tsconfig.tsbuildinfo
+
+# Env files (never commit secrets)
+.env
+.env.local
+.env.*.local
+web/.env
+web/.env.local
+web/.env.*.local
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Claude / agent state
+.claude/
