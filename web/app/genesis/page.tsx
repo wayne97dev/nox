@@ -30,6 +30,7 @@ export default function GenesisPage() {
       { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "lotsSold" },
       { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "closeAt" },
       { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "seeded" },
+      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "controller" },
       {
         address: ADDRESSES.noxGenesis,
         abi: noxGenesisAbi,
@@ -41,9 +42,12 @@ export default function GenesisPage() {
     query: { enabled: hasContracts(), refetchInterval: 5000 },
   });
 
-  const [price, unit, cap, maxPerTx, sold, closeAt, seeded, myEth] = (reads.data ?? []).map(
+  const [price, unit, cap, maxPerTx, sold, closeAt, seeded, controllerAddr, myEth] = (reads.data ?? []).map(
     (r) => (r?.status === "success" ? r.result : undefined),
-  ) as [bigint?, bigint?, bigint?, bigint?, bigint?, bigint?, boolean?, bigint?];
+  ) as [bigint?, bigint?, bigint?, bigint?, bigint?, bigint?, boolean?, `0x${string}`?, bigint?];
+
+  const isController =
+    !!address && !!controllerAddr && address.toLowerCase() === controllerAddr.toLowerCase();
 
   const lotsBig = useMemo(() => {
     try {
@@ -284,6 +288,23 @@ export default function GenesisPage() {
                   className="nox-btn-primary w-full"
                 >
                   {isPending ? "Confirm…" : isMining ? "Seeding…" : "Seed pool"}
+                </button>
+              </>
+            ) : windowExpired && isController ? (
+              <>
+                <div className="rounded-xl border border-iris/30 bg-iris/10 p-4 text-sm text-glow mb-4 flex items-start gap-2">
+                  <Flame className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>
+                    Window expired and you are the controller — you can force-seed the pool now
+                    with the partial raise ({ethRaised ? Number(formatEther(ethRaised)).toFixed(3) : "0"} ETH).
+                  </span>
+                </div>
+                <button
+                  onClick={onSeed}
+                  disabled={isPending || isMining}
+                  className="nox-btn-primary w-full"
+                >
+                  {isPending ? "Confirm…" : isMining ? "Seeding…" : "Force-seed pool"}
                 </button>
               </>
             ) : (
