@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useAccount,
   useReadContract,
@@ -77,14 +77,21 @@ export default function SendStealthPage() {
   const { isLoading: isMining, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
   const [step, setStep] = useState<"approve" | "send" | null>(null);
 
+  // Guard on txHash so each confirmation (approve, then send) fires once — `aux`
+  // changes reference on every poll and must not gate this effect.
+  const toastedHash = useRef<string | undefined>(undefined);
+  const refetchAux = aux.refetch;
   useEffect(() => {
-    if (!isSuccess) return;
+    if (!isSuccess || !txHash || toastedHash.current === txHash) return;
+    toastedHash.current = txHash;
     if (step === "approve") toast.success("Approval confirmed");
-    if (step === "send") toast.success("Stealth payment sent");
-    aux.refetch();
-    if (step === "send") setStealth(null);
+    if (step === "send") {
+      toast.success("Stealth payment sent");
+      setStealth(null);
+    }
+    refetchAux();
     setStep(null);
-  }, [isSuccess, step, aux]);
+  }, [isSuccess, txHash, step, refetchAux]);
 
   const derive = () => {
     if (!metaQuery.data) return;

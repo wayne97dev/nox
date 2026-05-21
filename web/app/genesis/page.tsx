@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAccount, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { formatEther, parseEther } from "viem";
 import { toast } from "sonner";
@@ -66,12 +66,17 @@ export default function GenesisPage() {
   const { writeContract, data: txHash, isPending } = useWriteContract();
   const { isLoading: isMining, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
+  // Fire the confirmation toast + refetch exactly once per tx hash (reads changes
+  // reference on every poll, so it must NOT gate this effect).
+  const toastedHash = useRef<string | undefined>(undefined);
+  const refetchReads = reads.refetch;
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && txHash && toastedHash.current !== txHash) {
+      toastedHash.current = txHash;
       toast.success("Transaction confirmed");
-      reads.refetch();
+      refetchReads();
     }
-  }, [isSuccess, reads]);
+  }, [isSuccess, txHash, refetchReads]);
 
   const txLimitExceeded = maxPerTx ? lotsBig > maxPerTx : false;
   const capExceeded = cap && sold ? sold + lotsBig > cap : false;

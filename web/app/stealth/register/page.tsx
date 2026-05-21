@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { toast } from "sonner";
 import { bytesToHex } from "viem";
@@ -40,12 +40,15 @@ export default function RegisterStealthPage() {
   const { writeContract, data: txHash, isPending } = useWriteContract();
   const { isLoading: isMining, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
+  const toastedHash = useRef<string | undefined>(undefined);
+  const refetchMeta = onChainMeta.refetch;
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && txHash && toastedHash.current !== txHash) {
+      toastedHash.current = txHash;
       toast.success("Meta-address registered on-chain");
-      onChainMeta.refetch();
+      refetchMeta();
     }
-  }, [isSuccess, onChainMeta]);
+  }, [isSuccess, txHash, refetchMeta]);
 
   const isOnChain = onChainMeta.data && onChainMeta.data.length > 2; // more than just "0x"
 
