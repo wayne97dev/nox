@@ -36,6 +36,7 @@ export function SiteFooter() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
             <FooterCol title="Protocol">
               <FooterLink href="/genesis">Genesis</FooterLink>
+              <FooterLink href="/stealth/register">Register</FooterLink>
               <FooterLink href="/stealth/send">Send</FooterLink>
               <FooterLink href="/stealth/receive">Receive</FooterLink>
               <FooterLink href="/stats">Stats</FooterLink>

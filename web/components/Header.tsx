@@ -7,6 +7,7 @@ import { ConnectWallet } from "./ConnectWallet";
 
 const NAV = [
   { href: "/genesis", label: "Genesis" },
+  { href: "/stealth/register", label: "Register" },
   { href: "/stealth/send", label: "Send" },
   { href: "/stealth/receive", label: "Receive" },
   { href: "/stats", label: "Stats" },
