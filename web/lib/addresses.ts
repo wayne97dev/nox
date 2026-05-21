@@ -18,6 +18,8 @@ export const ADDRESSES = {
   stealthAnnouncer: norm(process.env.NEXT_PUBLIC_STEALTH_ANNOUNCER),
   noxStealthSender: norm(process.env.NEXT_PUBLIC_NOX_STEALTH_SENDER),
   stealthMining: norm(process.env.NEXT_PUBLIC_STEALTH_MINING),
+  poolManager: norm(process.env.NEXT_PUBLIC_POOL_MANAGER),
+  stateView: norm(process.env.NEXT_PUBLIC_STATE_VIEW),
 } as const;
 
 export function hasContracts(): boolean {

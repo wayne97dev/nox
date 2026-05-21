@@ -26,9 +26,9 @@ export function StatCard({
 }) {
   return (
     <Card className="flex flex-col gap-1.5">
-      <span className="text-xs uppercase tracking-wider text-mist">{label}</span>
-      <span className="text-2xl font-mono font-semibold text-fog">{value}</span>
-      {sub && <span className="text-sm text-mist">{sub}</span>}
+      <span className="text-xs uppercase tracking-[0.15em] text-mist font-mono">{label}</span>
+      <span className="text-2xl font-mono font-light text-fog">{value}</span>
+      {sub && <span className="text-sm text-mist font-light">{sub}</span>}
     </Card>
   );
 }

@@ -74,6 +74,19 @@ export const noxGenesisAbi = [
   },
   {
     type: "function",
+    name: "poolKey",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { name: "currency0", type: "address" },
+      { name: "currency1", type: "address" },
+      { name: "fee", type: "uint24" },
+      { name: "tickSpacing", type: "int24" },
+      { name: "hooks", type: "address" },
+    ],
+  },
+  {
+    type: "function",
     name: "mintGenesis",
     stateMutability: "payable",
     inputs: [{ name: "units", type: "uint256" }],
@@ -210,6 +223,42 @@ export const noxStealthSenderAbi = [
       { name: "viewTag", type: "bytes1" },
     ],
     outputs: [{ name: "reward", type: "uint256" }],
+  },
+] as const;
+
+export const stateViewAbi = [
+  {
+    type: "function",
+    name: "getSlot0",
+    stateMutability: "view",
+    inputs: [{ name: "poolId", type: "bytes32" }],
+    outputs: [
+      { name: "sqrtPriceX96", type: "uint160" },
+      { name: "tick", type: "int24" },
+      { name: "protocolFee", type: "uint24" },
+      { name: "lpFee", type: "uint24" },
+    ],
+  },
+  {
+    type: "function",
+    name: "getLiquidity",
+    stateMutability: "view",
+    inputs: [{ name: "poolId", type: "bytes32" }],
+    outputs: [{ name: "liquidity", type: "uint128" }],
+  },
+] as const;
+
+// PoolManager exposes ERC-6909 balances; the hook custodies fees as claims here.
+export const poolManagerAbi = [
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "id", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256" }],
   },
 ] as const;
 

@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { Eye, Send, Sparkles } from "lucide-react";
 
 import { Card, StatCard } from "@/components/Card";
+import { Reveal } from "@/components/Reveal";
+import { StealthFlow } from "@/components/StealthFlow";
 import { ADDRESSES, hasContracts } from "@/lib/addresses";
 import { noxStealthSenderAbi, noxTokenAbi, stealthMiningAbi, stealthRegistryAbi } from "@/lib/abis";
 import { computeStealthAddress, type SenderOutput } from "@/lib/stealth";
@@ -130,13 +132,23 @@ export default function SendStealthPage() {
   return (
     <div className="px-6 py-12">
       <div className="mx-auto max-w-3xl">
-        <header className="mb-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-3">Send Privately</h1>
-          <p className="text-mist max-w-xl mx-auto">
-            Pay any address that has registered a stealth meta-address. The on-chain
-            recipient is a one-time address that no one can link back to your target wallet.
-          </p>
-        </header>
+        <Reveal>
+          <header className="mb-8 text-center">
+            <div className="text-xs font-mono uppercase tracking-[0.25em] text-iris/80 mb-3">stealth · send</div>
+            <h1 className="text-4xl md:text-5xl font-light gradient-text mb-3">Send Privately</h1>
+            <p className="text-mist max-w-xl mx-auto font-light">
+              Pay any address that has registered a stealth meta-address. The on-chain
+              recipient is a one-time address that no one can link back to your target wallet.
+            </p>
+          </header>
+        </Reveal>
+
+        <Reveal>
+          <StealthFlow
+            steps={["Look up recipient", "Derive one-time address", "Approve & send"]}
+            className="mb-8"
+          />
+        </Reveal>
 
         {/* Mining stats */}
         {reward !== undefined && (

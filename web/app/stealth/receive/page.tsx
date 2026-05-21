@@ -5,6 +5,8 @@ import { useAccount, usePublicClient } from "wagmi";
 import { bytesToHex, formatEther, type Hex } from "viem";
 import { toast } from "sonner";
 import { Card } from "@/components/Card";
+import { Reveal } from "@/components/Reveal";
+import { StealthFlow } from "@/components/StealthFlow";
 import { ADDRESSES, hasContracts } from "@/lib/addresses";
 import { stealthAnnouncerAbi } from "@/lib/abis";
 import {
@@ -89,13 +91,23 @@ export default function ReceiveStealthPage() {
   return (
     <div className="px-6 py-12">
       <div className="mx-auto max-w-4xl">
-        <header className="mb-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-3">Receive</h1>
-          <p className="text-mist max-w-xl mx-auto">
-            Scan the chain for payments sent to your stealth meta-address. Your viewing key
-            never leaves this browser.
-          </p>
-        </header>
+        <Reveal>
+          <header className="mb-8 text-center">
+            <div className="text-xs font-mono uppercase tracking-[0.25em] text-iris/80 mb-3">stealth · receive</div>
+            <h1 className="text-4xl md:text-5xl font-light gradient-text mb-3">Receive</h1>
+            <p className="text-mist max-w-xl mx-auto font-light">
+              Scan the chain for payments sent to your stealth meta-address. Your viewing key
+              never leaves this browser.
+            </p>
+          </header>
+        </Reveal>
+
+        <Reveal>
+          <StealthFlow
+            steps={["Scan Announcement logs", "Match with viewing key", "Derive spending key"]}
+            className="mb-8"
+          />
+        </Reveal>
 
         {!isConnected ? (
           <Card className="text-center py-10">
@@ -115,7 +127,7 @@ export default function ReceiveStealthPage() {
             <Card className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-fog">Inbox</h2>
+                  <h2 className="text-lg font-normal text-fog">Inbox</h2>
                   <p className="text-xs text-mist mt-0.5">
                     Scans the last ~300k blocks of <code>Announcement</code> events
                   </p>
@@ -170,7 +182,7 @@ function PaymentRow({ payment }: { payment: DiscoveredPayment }) {
         </div>
         <div className="text-right shrink-0">
           <div className="text-xs text-mist">Amount</div>
-          <div className="font-mono text-lg font-semibold gradient-text">
+          <div className="font-mono text-lg font-normal gradient-text">
             +{Number(formatEther(payment.amount)).toLocaleString()} NOX
           </div>
         </div>

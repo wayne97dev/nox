@@ -99,7 +99,7 @@ export default function RegisterStealthPage() {
     <div className="px-6 py-12">
       <div className="mx-auto max-w-3xl">
         <header className="mb-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-3">Register</h1>
+          <h1 className="text-4xl md:text-5xl font-light gradient-text mb-3">Register</h1>
           <p className="text-mist max-w-xl mx-auto">
             Generate a stealth keypair (locally, never sent to a server), then publish your
             meta-address on-chain so anyone can pay you privately.
@@ -114,7 +114,7 @@ export default function RegisterStealthPage() {
         ) : !keys ? (
           <Card>
             <KeyRound className="h-6 w-6 text-iris mb-3" />
-            <h2 className="text-lg font-semibold text-fog mb-2">Generate your stealth keypair</h2>
+            <h2 className="text-lg font-normal text-fog mb-2">Generate your stealth keypair</h2>
             <p className="text-sm text-mist mb-5">
               Two random secp256k1 keys: a <strong>spending</strong> key (controls the funds)
               and a <strong>viewing</strong> key (lets you scan for incoming payments). Stored
@@ -129,7 +129,7 @@ export default function RegisterStealthPage() {
             <Card className="mb-4">
               <div className="flex items-start justify-between gap-3 mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-fog">Your meta-address</h2>
+                  <h2 className="text-lg font-normal text-fog">Your meta-address</h2>
                   <p className="text-xs text-mist mt-1">66-byte concat of spendingPubKey || viewingPubKey</p>
                 </div>
                 {isOnChain ? (
@@ -158,7 +158,7 @@ export default function RegisterStealthPage() {
 
             <Card className="mb-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-fog">Private keys</h3>
+                <h3 className="font-normal text-fog">Private keys</h3>
                 <button
                   onClick={() => setShowSecrets((s) => !s)}
                   className="text-xs text-iris hover:text-glow"

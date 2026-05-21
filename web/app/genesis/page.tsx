@@ -104,7 +104,7 @@ export default function GenesisPage() {
     <div className="px-6 py-12">
       <div className="mx-auto max-w-5xl">
         <header className="mb-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-3">Genesis Sale</h1>
+          <h1 className="text-4xl md:text-5xl font-light gradient-text mb-3">Genesis Sale</h1>
           <p className="text-mist">
             Fixed-price mint. Buy at floor, wait for the pool to seed, then trade on Uniswap v4.
           </p>
@@ -115,7 +115,7 @@ export default function GenesisPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-sm text-mist">Progress</div>
-              <div className="text-2xl font-mono font-semibold text-fog">
+              <div className="text-2xl font-mono font-normal text-fog">
                 {sold !== undefined ? sold.toString() : "—"}
                 <span className="text-mist text-base"> / {cap?.toString() ?? "—"}</span>
                 <span className="text-iris text-base ml-2">({progressPct.toFixed(2)}%)</span>
@@ -123,7 +123,7 @@ export default function GenesisPage() {
             </div>
             <div className="text-right">
               <div className="text-sm text-mist">ETH raised</div>
-              <div className="text-2xl font-mono font-semibold text-fog">
+              <div className="text-2xl font-mono font-normal text-fog">
                 {ethRaised ? Number(formatEther(ethRaised)).toFixed(4) : "0"}
                 <span className="text-mist text-base"> / {ethTarget ? formatEther(ethTarget) : "—"}</span>
               </div>
@@ -135,7 +135,7 @@ export default function GenesisPage() {
         {/* Launch price model chart */}
         <Card className="mb-6">
           <div className="flex items-center justify-between mb-1">
-            <h2 className="text-lg font-semibold text-fog">Launch price model</h2>
+            <h2 className="text-lg font-normal text-fog">Launch price model</h2>
             <span className="nox-chip">fixed → market</span>
           </div>
           <p className="text-sm text-mist mb-4">
@@ -180,7 +180,7 @@ export default function GenesisPage() {
         {/* Mint form / seed UI */}
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
-            <h2 className="text-lg font-semibold text-fog mb-4">Mint NOX</h2>
+            <h2 className="text-lg font-normal text-fog mb-4">Mint NOX</h2>
 
             {seeded ? (
               <div className="rounded-xl border border-iris/30 bg-iris/10 p-4 text-sm text-glow">
@@ -250,7 +250,7 @@ export default function GenesisPage() {
           </Card>
 
           <Card>
-            <h2 className="text-lg font-semibold text-fog mb-4">Pool seed</h2>
+            <h2 className="text-lg font-normal text-fog mb-4">Pool seed</h2>
 
             {seeded ? (
               <div className="text-sm text-mist">
@@ -320,7 +320,7 @@ function DeployNotice() {
       <div className="mx-auto max-w-xl">
         <Card>
           <AlertTriangle className="h-6 w-6 text-iris mb-3" />
-          <h2 className="text-xl font-semibold text-fog mb-2">Contracts not deployed yet</h2>
+          <h2 className="text-xl font-normal text-fog mb-2">Contracts not deployed yet</h2>
           <p className="text-sm text-mist mb-4">
             Set <code className="text-glow">NEXT_PUBLIC_NOX_GENESIS</code> and the other
             contract addresses in <code>web/.env.local</code> after running{" "}

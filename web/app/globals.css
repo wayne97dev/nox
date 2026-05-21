@@ -15,6 +15,18 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.011em;
+    font-weight: 300;
+  }
+
+  /* Terminal / ASCII aesthetic: monospace headings, light weights, wide tracking */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    font-weight: 300;
   }
 
   body {
@@ -54,6 +66,17 @@
     color: #fff;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -88,7 +111,7 @@
 
   /* Pill primary button — gradient fill */
   .nox-btn-primary {
-    @apply inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium font-mono tracking-wide text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
     background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #3B82F6 100%);
     box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.12) inset, 0 8px 24px -8px rgba(124, 58, 237, 0.6);
   }
@@ -102,19 +125,33 @@
 
   /* Pill ghost button — glass */
   .nox-btn-ghost {
-    @apply inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-fog border border-white/[0.10] bg-white/[0.02] backdrop-blur-md transition-all duration-200 hover:border-white/20 hover:bg-white/[0.05] disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium font-mono tracking-wide text-fog border border-white/[0.10] bg-white/[0.02] backdrop-blur-md transition-all duration-200 hover:border-white/20 hover:bg-white/[0.05] disabled:opacity-40 disabled:cursor-not-allowed;
   }
 
   .nox-input {
-    @apply w-full rounded-xl border border-white/[0.08] bg-black/30 px-4 py-3 text-fog placeholder:text-mist/60 transition-all focus:border-iris/50 focus:outline-none focus:ring-2 focus:ring-iris/15;
+    @apply w-full rounded-xl border border-white/[0.08] bg-black/30 px-4 py-3 text-fog font-mono placeholder:text-mist/60 transition-all focus:border-iris/50 focus:outline-none focus:ring-2 focus:ring-iris/15;
   }
 
   .nox-label {
-    @apply block text-xs font-medium uppercase tracking-wider text-mist mb-2;
+    @apply block text-xs font-normal uppercase tracking-[0.15em] text-mist mb-2 font-mono;
   }
 
   .nox-chip {
-    @apply inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1 text-xs font-medium text-glow;
+    @apply inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] px-3 py-1 text-xs font-normal text-glow font-mono tracking-wide;
+  }
+
+  /* Fade-in on scroll */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
   }
 
   .nox-divider {

@@ -25,7 +25,7 @@ export function SiteFooter() {
                 <circle cx="16" cy="16" r="11" fill="none" stroke="url(#ftGrad)" strokeWidth="1.5" />
                 <path d="M22.5 11 A 7 7 0 1 0 22.5 21 A 5.5 5.5 0 1 1 22.5 11 Z" fill="url(#ftGrad)" />
               </svg>
-              <span className="font-mono text-base font-bold tracking-[0.2em] text-fog">NOX</span>
+              <span className="font-mono text-base font-normal tracking-[0.2em] text-fog">NOX</span>
             </div>
             <p className="text-sm text-mist leading-relaxed">
               Privacy-themed token on Base. Genesis sale, Uniswap v4 hook, stealth payments with
@@ -39,7 +39,7 @@ export function SiteFooter() {
               <FooterLink href="/genesis">Genesis</FooterLink>
               <FooterLink href="/stealth/send">Send</FooterLink>
               <FooterLink href="/stealth/receive">Receive</FooterLink>
-              <FooterLink href="/stealth/register">Register</FooterLink>
+              <FooterLink href="/stats">Stats</FooterLink>
             </FooterCol>
             <FooterCol title="Resources">
               <FooterLinkExt href={WHITEPAPER_URL}>Whitepaper</FooterLinkExt>
@@ -78,7 +78,7 @@ export function SiteFooter() {
 function FooterCol({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-mist/60 mb-3">{title}</h4>
+      <h4 className="text-xs font-normal uppercase tracking-wider text-mist/60 mb-3">{title}</h4>
       <ul className="space-y-2">{children}</ul>
     </div>
   );

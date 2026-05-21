@@ -7,9 +7,9 @@ import { ConnectWallet } from "./ConnectWallet";
 
 const NAV = [
   { href: "/genesis", label: "Genesis" },
-  { href: "/stealth/register", label: "Register" },
   { href: "/stealth/send", label: "Send" },
   { href: "/stealth/receive", label: "Receive" },
+  { href: "/stats", label: "Stats" },
 ];
 
 const WHITEPAPER_URL = "https://github.com/wayne97dev/nox/blob/main/Nox-Whitepaper.pdf";
@@ -38,7 +38,7 @@ export function Header() {
               <path d="M22.5 11 A 7 7 0 1 0 22.5 21 A 5.5 5.5 0 1 1 22.5 11 Z" fill="url(#hdrGrad)" />
             </svg>
           </div>
-          <span className="font-mono text-lg font-bold tracking-[0.2em] text-fog">NOX</span>
+          <span className="font-mono text-lg font-normal tracking-[0.2em] text-fog">NOX</span>
         </Link>
 
         {/* Nav */}
