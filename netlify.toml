@@ -1,13 +1,11 @@
 # Netlify config for the Nox monorepo.
-# The Next.js dApp lives in web/ — Netlify must build from there, not the repo root.
+# The Next.js dApp lives in web/ and is built as a fully static export
+# (output: "export" in next.config.mjs) — no serverless functions, no plugin.
 
 [build]
   base = "web"
   command = "npm run build"
+  publish = "out"           # relative to base → web/out
 
 [build.environment]
   NODE_VERSION = "20"
-
-# Official Next.js runtime: handles routing, redirects, and rendering automatically.
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
