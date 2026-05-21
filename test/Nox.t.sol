@@ -182,6 +182,42 @@ contract NoxTest is Test {
     }
 
     // ------------------------------------------------------------------
+    // Controllable LP
+    // ------------------------------------------------------------------
+
+    function test_withdrawLiquidity_controllerPullsLP() public {
+        _fillCap();
+        genesis.seedPool();
+
+        uint128 liq = genesis.lpLiquidity();
+        assertGt(liq, 0, "no LP recorded");
+
+        uint256 ethBefore = controller.balance;
+        uint256 noxBefore = token.balanceOf(controller);
+
+        vm.prank(controller);
+        genesis.withdrawLiquidity();
+
+        assertEq(genesis.lpLiquidity(), 0, "LP not cleared");
+        assertGt(controller.balance, ethBefore, "controller got no ETH");
+        assertGt(token.balanceOf(controller), noxBefore, "controller got no NOX");
+    }
+
+    function test_withdrawLiquidity_onlyController() public {
+        _fillCap();
+        genesis.seedPool();
+        vm.prank(alice);
+        vm.expectRevert(NoxGenesis.NotController.selector);
+        genesis.withdrawLiquidity();
+    }
+
+    function test_withdrawLiquidity_revertsBeforeSeed() public {
+        vm.prank(controller);
+        vm.expectRevert(NoxGenesis.NotSeeded.selector);
+        genesis.withdrawLiquidity();
+    }
+
+    // ------------------------------------------------------------------
     // Refund flow
     // ------------------------------------------------------------------
 

@@ -62,10 +62,12 @@ contract NoxGenesis is IUnlockCallback {
 
     bool public seeded;
     PoolKey public poolKey;
+    uint128 public lpLiquidity; // current LP held by this contract (controller-withdrawable)
 
     event GenesisBought(address indexed buyer, uint256 lots, uint256 ethPaid);
     event PoolSeeded(uint256 ethSeeded, uint256 noxSeeded, uint160 sqrtPriceX96, uint128 liquidity);
     event Refunded(address indexed buyer, uint256 amount);
+    event LiquidityWithdrawn(address indexed to, uint128 liquidity);
 
     error NotController();
     error WindowClosed();
@@ -81,6 +83,8 @@ contract NoxGenesis is IUnlockCallback {
     error CapNotReached();
     error NotPoolManager();
     error NoEthRaised();
+    error NotSeeded();
+    error NothingToWithdraw();
 
     constructor(
         string memory tokenName_,
@@ -156,7 +160,8 @@ contract NoxGenesis is IUnlockCallback {
             LP_SUPPLY
         );
 
-        poolManager.unlock(abi.encode(key, liquidity));
+        poolManager.unlock(abi.encode(key, liquidity, false));
+        lpLiquidity = liquidity;
 
         // Mint the mining supply to the StealthMining contract before sealing.
         token.mint(address(mining), MINING_SUPPLY);
@@ -165,16 +170,30 @@ contract NoxGenesis is IUnlockCallback {
         emit PoolSeeded(ethRaised, LP_SUPPLY, sqrtPriceX96, liquidity);
     }
 
+    /// @notice Controller can withdraw the LP position (ETH + NOX) back to itself.
+    ///         NOTE: this makes the launch NOT rug-proof — the controller can pull
+    ///         liquidity. Holders trust the controller not to.
+    function withdrawLiquidity() external {
+        if (msg.sender != controller) revert NotController();
+        if (!seeded) revert NotSeeded();
+        uint128 liq = lpLiquidity;
+        if (liq == 0) revert NothingToWithdraw();
+        lpLiquidity = 0;
+        poolManager.unlock(abi.encode(poolKey, liq, true));
+        emit LiquidityWithdrawn(controller, liq);
+    }
+
     function unlockCallback(bytes calldata data) external returns (bytes memory) {
         if (msg.sender != address(poolManager)) revert NotPoolManager();
-        (PoolKey memory key, uint128 liquidity) = abi.decode(data, (PoolKey, uint128));
+        (PoolKey memory key, uint128 liquidity, bool isWithdraw) = abi.decode(data, (PoolKey, uint128, bool));
 
+        int256 liqDelta = isWithdraw ? -int256(uint256(liquidity)) : int256(uint256(liquidity));
         (BalanceDelta delta,) = poolManager.modifyLiquidity(
             key,
             IPoolManager.ModifyLiquidityParams({
                 tickLower: TICK_LOWER,
                 tickUpper: TICK_UPPER,
-                liquidityDelta: int256(uint256(liquidity)),
+                liquidityDelta: liqDelta,
                 salt: bytes32(0)
             }),
             ""
@@ -183,16 +202,22 @@ contract NoxGenesis is IUnlockCallback {
         int128 d0 = delta.amount0();
         int128 d1 = delta.amount1();
 
-        if (d0 < 0) {
-            uint256 owed0 = uint256(uint128(-d0));
-            poolManager.settle{value: owed0}();
-        }
-        if (d1 < 0) {
-            uint256 owed1 = uint256(uint128(-d1));
-            token.mint(address(this), owed1);
-            poolManager.sync(key.currency1);
-            token.transfer(address(poolManager), owed1);
-            poolManager.settle();
+        if (isWithdraw) {
+            // Removing liquidity: the pool owes us the principal → pull it to the controller.
+            if (d0 > 0) poolManager.take(key.currency0, controller, uint256(uint128(d0)));
+            if (d1 > 0) poolManager.take(key.currency1, controller, uint256(uint128(d1)));
+        } else {
+            // Seeding: we owe ETH + NOX → settle them.
+            if (d0 < 0) {
+                poolManager.settle{value: uint256(uint128(-d0))}();
+            }
+            if (d1 < 0) {
+                uint256 owed1 = uint256(uint128(-d1));
+                token.mint(address(this), owed1);
+                poolManager.sync(key.currency1);
+                token.transfer(address(poolManager), owed1);
+                poolManager.settle();
+            }
         }
 
         return "";

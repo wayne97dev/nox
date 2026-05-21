@@ -55,15 +55,23 @@ contract Deploy is Script {
         console.logBytes32(salt);
 
         vm.startBroadcast(pk);
-        Deployed memory d = _deploy(salt, deployer, controller);
+        Deployed memory d = _deploy(salt, expectedHook, deployer, controller);
         vm.stopBroadcast();
 
         require(address(d.hook) == expectedHook, "hook addr mismatch");
         _log(d);
     }
 
-    function _deploy(bytes32 salt, address deployer, address controller) internal returns (Deployed memory d) {
-        d.hook = new NoxHook{salt: salt}(IPoolManager(vm.envAddress("POOL_MANAGER")), vm.envAddress("TREASURY"));
+    function _deploy(bytes32 salt, address expectedHook, address deployer, address controller)
+        internal
+        returns (Deployed memory d)
+    {
+        // The hook only depends on (poolManager, treasury). If an identical one already
+        // exists at the mined address (e.g. from a prior deploy), reuse it — CREATE2 to an
+        // existing address would revert. A single fee-router hook can serve multiple pools.
+        d.hook = expectedHook.code.length > 0
+            ? NoxHook(payable(expectedHook))
+            : new NoxHook{salt: salt}(IPoolManager(vm.envAddress("POOL_MANAGER")), vm.envAddress("TREASURY"));
         d.genesis = new NoxGenesis(
             vm.envOr("TOKEN_NAME", string("Nox")),
             vm.envOr("TOKEN_SYMBOL", string("NOX")),
