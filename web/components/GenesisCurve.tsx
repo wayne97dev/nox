@@ -1,75 +1,63 @@
 "use client";
 
 /**
- * Launch price-model chart for the genesis page.
+ * Genesis raise-progress chart.
  *
- * Nox uses a FIXED-price genesis, so the honest "bonding curve" is:
- *   - a flat line at the genesis price across the 60% genesis allocation
- *   - a step up (~3× at full cap) when the v4 pool seeds and the market opens
- *
- * The bright solid portion + glowing marker track the LIVE progress
- * (unitsSold / cap). Everything is derived from on-chain constants, not predictions.
+ * ETH raised climbs linearly toward the cap (fixed-price sale). The solid line +
+ * gradient fill track what's been raised so far; the dashed projection runs to the
+ * cap target where the v4 pool seeds. A glowing marker shows the live position.
  */
 
 interface GenesisCurveProps {
-  /** unitsSold / capUnits, 0..1 */
+  /** lotsSold / capLots, 0..1 */
   progress: number;
-  /** genesis price per 1,000 NOX, in ETH (e.g. 0.00001) */
-  genesisPriceEth: number;
-  /** ETH raised so far (for the marker label) */
+  /** ETH raised so far */
   ethRaised: number;
+  /** ETH target at full cap (e.g. 10) */
+  ethTarget: number;
 }
 
 const VB_W = 1000;
-const VB_H = 380;
-const PAD = { l: 78, r: 28, t: 34, b: 46 };
+const VB_H = 360;
+const PAD = { l: 92, r: 44, t: 30, b: 46 };
 
-// supply layout (% of total supply)
-const GENESIS_END = 60; // 60% genesis
-const LP_END = 80; // +20% LP
-
-export function GenesisCurve({ progress, genesisPriceEth, ethRaised }: GenesisCurveProps) {
-  const gp = genesisPriceEth || 0.0000333;
-  // Market opens at GENESIS_SUPPLY / LP_SUPPLY = 300M / 200M = 1.5× the genesis price.
-  const lp = gp * 1.5;
-  const maxY = lp * 1.5;
+export function GenesisCurve({ progress, ethRaised, ethTarget }: GenesisCurveProps) {
+  const target = ethTarget > 0 ? ethTarget : 10;
+  const maxY = target * 1.12;
+  const clamped = Math.max(0, Math.min(1, progress));
 
   const plotW = VB_W - PAD.l - PAD.r;
   const plotH = VB_H - PAD.t - PAD.b;
 
-  const px = (pct: number) => PAD.l + (pct / 100) * plotW;
-  const py = (price: number) => PAD.t + plotH - (price / maxY) * plotH;
+  const px = (pct: number) => PAD.l + pct * plotW; // pct 0..1
+  const py = (eth: number) => PAD.t + plotH - (eth / maxY) * plotH;
 
-  const clamped = Math.max(0, Math.min(1, progress));
-  const progressPct = clamped * GENESIS_END; // map genesis progress onto 0..60%
+  const x0 = px(0);
+  const y0 = py(0);
+  const mx = px(clamped);
+  const my = py(ethRaised);
+  const xCap = px(1);
+  const yCap = py(target);
 
-  const yGp = py(gp);
-  const yLp = py(lp);
-  const xProg = px(progressPct);
-  const xGenEnd = px(GENESIS_END);
-  const xLpEnd = px(LP_END);
+  const areaPath = `M ${x0} ${y0} L ${mx} ${my} L ${mx} ${y0} Z`;
 
-  // area under the live (sold) genesis portion
-  const areaPath = `M ${px(0)} ${py(0)} L ${px(0)} ${yGp} L ${xProg} ${yGp} L ${xProg} ${py(0)} Z`;
+  // callout stays inside the plot
+  const calloutX = Math.min(Math.max(mx + 10, x0), xCap - 168);
 
   return (
     <div className="w-full">
-      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-auto" role="img" aria-label="Genesis launch price model">
+      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-auto" role="img" aria-label="Genesis raise progress">
         <defs>
           <linearGradient id="gcArea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#A78BFA" stopOpacity="0.35" />
+            <stop offset="0%" stopColor="#A78BFA" stopOpacity="0.4" />
             <stop offset="100%" stopColor="#A78BFA" stopOpacity="0" />
           </linearGradient>
-          <linearGradient id="gcLine" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient id="gcLine" x1="0" y1="1" x2="1" y2="0">
             <stop offset="0%" stopColor="#8B5CF6" />
-            <stop offset="100%" stopColor="#A78BFA" />
+            <stop offset="100%" stopColor="#60A5FA" />
           </linearGradient>
-          <linearGradient id="gcLp" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#6366F1" />
-            <stop offset="100%" stopColor="#3B82F6" />
-          </linearGradient>
-          <filter id="gcGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="6" result="b" />
+          <filter id="gcGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="7" result="b" />
             <feMerge>
               <feMergeNode in="b" />
               <feMergeNode in="SourceGraphic" />
@@ -77,103 +65,77 @@ export function GenesisCurve({ progress, genesisPriceEth, ethRaised }: GenesisCu
           </filter>
         </defs>
 
-        {/* phase bands */}
-        <rect x={px(0)} y={PAD.t} width={xGenEnd - px(0)} height={plotH} fill="#A78BFA" opacity="0.04" />
-        <rect x={xGenEnd} y={PAD.t} width={px(100) - xGenEnd} height={plotH} fill="#3B82F6" opacity="0.04" />
-
-        {/* horizontal gridlines at 0 / gp / lp */}
-        {[0, gp, lp].map((v, i) => (
-          <line
-            key={i}
-            x1={PAD.l}
-            y1={py(v)}
-            x2={VB_W - PAD.r}
-            y2={py(v)}
-            stroke="#ffffff"
-            strokeOpacity="0.06"
-            strokeDasharray={i === 0 ? "0" : "4 6"}
-          />
+        {/* y gridlines + labels: 0, half, target */}
+        {[0, target / 2, target].map((v, i) => (
+          <g key={i}>
+            <line
+              x1={PAD.l}
+              y1={py(v)}
+              x2={VB_W - PAD.r}
+              y2={py(v)}
+              stroke="#ffffff"
+              strokeOpacity="0.06"
+              strokeDasharray={i === 0 ? "0" : "4 7"}
+            />
+            <text x={PAD.l - 14} y={py(v) + 6} textAnchor="end" fontSize="19" fill="#9CA3AF" fontFamily="monospace">
+              {v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}
+            </text>
+          </g>
         ))}
-
-        {/* y labels */}
-        <text x={PAD.l - 12} y={yGp + 4} textAnchor="end" fontSize="20" fill="#9CA3AF" fontFamily="monospace">
-          {gp.toFixed(5)}
-        </text>
-        <text x={PAD.l - 12} y={yLp + 4} textAnchor="end" fontSize="20" fill="#9CA3AF" fontFamily="monospace">
-          {lp.toFixed(5)}
-        </text>
-        <text x={PAD.l - 12} y={py(0) + 4} textAnchor="end" fontSize="18" fill="#6B7280" fontFamily="monospace">
+        <text x={PAD.l - 14} y={PAD.t - 8} textAnchor="end" fontSize="16" fill="#6B7280" fontFamily="monospace">
           ETH
         </text>
 
-        {/* area under live genesis */}
+        {/* filled area under the raised-so-far line */}
         <path d={areaPath} fill="url(#gcArea)" />
 
-        {/* genesis sold (solid bright) */}
-        <line x1={px(0)} y1={yGp} x2={xProg} y2={yGp} stroke="url(#gcLine)" strokeWidth="4" strokeLinecap="round" />
-        {/* genesis remaining (dashed faint) */}
+        {/* projection from marker to cap (dashed) */}
         <line
-          x1={xProg}
-          y1={yGp}
-          x2={xGenEnd}
-          y2={yGp}
-          stroke="#A78BFA"
-          strokeOpacity="0.35"
+          x1={mx}
+          y1={my}
+          x2={xCap}
+          y2={yCap}
+          stroke="#60A5FA"
+          strokeOpacity="0.45"
           strokeWidth="3"
-          strokeDasharray="6 8"
+          strokeDasharray="7 8"
           strokeLinecap="round"
         />
 
-        {/* step riser at seed */}
-        <line
-          x1={xGenEnd}
-          y1={yGp}
-          x2={xGenEnd}
-          y2={yLp}
-          stroke="#6366F1"
-          strokeOpacity="0.5"
-          strokeWidth="2.5"
-          strokeDasharray="6 6"
-        />
+        {/* raised-so-far line (solid) */}
+        <line x1={x0} y1={y0} x2={mx} y2={my} stroke="url(#gcLine)" strokeWidth="4.5" strokeLinecap="round" />
 
-        {/* LP / market line */}
-        <line x1={xGenEnd} y1={yLp} x2={xLpEnd} y2={yLp} stroke="url(#gcLp)" strokeWidth="4" strokeLinecap="round" />
-        {/* faint projected market beyond LP */}
-        <path
-          d={`M ${xLpEnd} ${yLp} Q ${px(90)} ${py(lp * 1.15)} ${px(100)} ${py(lp * 1.25)}`}
-          fill="none"
-          stroke="#3B82F6"
-          strokeOpacity="0.3"
-          strokeWidth="2.5"
-          strokeDasharray="5 7"
-        />
+        {/* cap target marker + flag */}
+        <circle cx={xCap} cy={yCap} r="5" fill="#60A5FA" />
+        <line x1={xCap} y1={yCap} x2={xCap} y2={py(0)} stroke="#60A5FA" strokeOpacity="0.25" strokeDasharray="3 6" />
+        <text x={xCap} y={yCap - 14} textAnchor="end" fontSize="18" fill="#60A5FA" fontFamily="monospace">
+          {target.toFixed(0)} ETH · cap → seed
+        </text>
 
         {/* live marker */}
-        <circle cx={xProg} cy={yGp} r="9" fill="#A78BFA" filter="url(#gcGlow)" />
-        <circle cx={xProg} cy={yGp} r="4" fill="#fff" />
+        <circle cx={mx} cy={my} r="9" fill="#A78BFA" filter="url(#gcGlow)" />
+        <circle cx={mx} cy={my} r="4" fill="#fff" />
 
-        {/* marker callout */}
-        <g transform={`translate(${Math.min(xProg, px(GENESIS_END) - 150)}, ${yGp - 54})`}>
-          <rect width="156" height="40" rx="9" fill="#0B0B17" stroke="#A78BFA" strokeOpacity="0.35" />
-          <text x="12" y="17" fontSize="15" fill="#9CA3AF">
+        {/* callout */}
+        <g transform={`translate(${calloutX}, ${Math.max(my - 56, PAD.t)})`}>
+          <rect width="170" height="42" rx="9" fill="#0B0B17" stroke="#A78BFA" strokeOpacity="0.35" />
+          <text x="13" y="18" fontSize="15" fill="#9CA3AF">
             You are here
           </text>
-          <text x="12" y="33" fontSize="15" fill="#E8E8F0" fontFamily="monospace">
+          <text x="13" y="34" fontSize="15" fill="#E8E8F0" fontFamily="monospace">
             {ethRaised.toFixed(3)} ETH raised
           </text>
         </g>
 
-        {/* phase labels */}
-        <text x={(px(0) + xGenEnd) / 2} y={VB_H - 16} textAnchor="middle" fontSize="19" fill="#A78BFA" fontWeight="600">
-          GENESIS · fixed price
+        {/* x labels */}
+        <text x={x0} y={VB_H - 14} textAnchor="start" fontSize="17" fill="#6B7280" fontFamily="monospace">
+          0
         </text>
-        <text x={(xGenEnd + px(100)) / 2} y={VB_H - 16} textAnchor="middle" fontSize="19" fill="#60A5FA" fontWeight="600">
-          MARKET · v4 pool (~1.5×)
+        <text x={(x0 + xCap) / 2} y={VB_H - 14} textAnchor="middle" fontSize="18" fill="#A78BFA" fontWeight="600">
+          {(clamped * 100).toFixed(1)}% of cap raised
         </text>
-
-        {/* seed divider label */}
-        <text x={xGenEnd} y={PAD.t - 12} textAnchor="middle" fontSize="16" fill="#6B7280">
-          seed →
+        <text x={xCap} y={VB_H - 14} textAnchor="end" fontSize="17" fill="#6B7280" fontFamily="monospace">
+          1,000 lots
         </text>
       </svg>
     </div>

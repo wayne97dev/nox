@@ -60,6 +60,8 @@ export default function GenesisPage() {
   const ethRaised = price && sold ? sold * price : 0n;
   const ethTarget = price && cap ? cap * price : 0n;
   const windowLeft = closeAt ? Number(closeAt) - now : 0;
+  const REFUND_GRACE = 48 * 3600; // matches NoxGenesis.REFUND_GRACE
+  const refundLeft = closeAt ? Number(closeAt) + REFUND_GRACE - now : 0;
 
   const { writeContract, data: txHash, isPending } = useWriteContract();
   const { isLoading: isMining, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
@@ -132,24 +134,20 @@ export default function GenesisPage() {
           <ProgressBar value={progressPct} />
         </Card>
 
-        {/* Launch price model chart */}
+        {/* Genesis raise-progress chart */}
         <Card className="mb-6">
           <div className="flex items-center justify-between mb-1">
-            <h2 className="text-lg font-normal text-fog">Launch price model</h2>
-            <span className="nox-chip">fixed → market</span>
+            <h2 className="text-lg font-normal text-fog">Genesis progress</h2>
+            <span className="nox-chip">raise → seed</span>
           </div>
           <p className="text-sm text-mist mb-4">
-            Everyone mints at the same flat genesis price. When the cap fills and the pool seeds,
-            the v4 market opens around 1.5× higher.
+            ETH raised climbs toward the {ethTarget ? Number(formatEther(ethTarget)).toFixed(0) : "10"} ETH
+            cap at a flat price. When it fills, the v4 pool seeds and trading opens.
           </p>
           <GenesisCurve
             progress={cap && sold ? Number(sold) / Number(cap) : 0}
-            genesisPriceEth={
-              price && unit
-                ? (Number(formatEther(price)) / Number(formatEther(unit))) * 1000
-                : 0.0000333
-            }
             ethRaised={ethRaised ? Number(formatEther(ethRaised)) : 0}
+            ethTarget={ethTarget ? Number(formatEther(ethTarget)) : 10}
           />
         </Card>
 
@@ -165,17 +163,20 @@ export default function GenesisPage() {
             sub="lots left in the cap"
           />
           <StatCard
-            label={windowExpired ? "Window status" : "Window left"}
+            label={seeded ? "Refund" : "Refund unlocks in"}
             value={
-              windowExpired ? (
-                <span className="text-iris">Closed</span>
+              seeded ? (
+                <span className="text-iris">N/A</span>
+              ) : refundLeft > 0 ? (
+                <FormatDuration seconds={refundLeft} />
               ) : (
-                <FormatDuration seconds={windowLeft} />
+                <span className="text-iris">Available</span>
               )
             }
             sub={
               <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> until controller can force seed
+                <Clock className="h-3 w-3" />
+                {seeded ? "pool seeded — no refund needed" : "if the genesis isn't seeded"}
               </span>
             }
           />
