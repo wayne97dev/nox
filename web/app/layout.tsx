@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/Header";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -37,11 +38,7 @@ export default function RootLayout({
           <div className="relative z-10 flex min-h-screen flex-col">
             <Header />
             <main className="flex-1">{children}</main>
-            <footer className="border-t border-veil/40 py-8 mt-24">
-              <div className="mx-auto max-w-6xl px-6 text-center text-sm text-mist">
-                Nox · Privacy-themed launch on Base · Built with Uniswap v4 hooks
-              </div>
-            </footer>
+            <SiteFooter />
           </div>
         </Providers>
       </body>
