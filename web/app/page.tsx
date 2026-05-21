@@ -17,7 +17,9 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-balance mb-6 leading-[1.05] tracking-tight">
-            <span className="gradient-text">Pay in the dark.</span>
+            <span className="gradient-text">Private payments</span>
+            <br />
+            <span className="text-fog">on Base.</span>
           </h1>
 
           <p className="text-lg md:text-xl text-mist max-w-2xl mx-auto mb-10 text-balance leading-relaxed">

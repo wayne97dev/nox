@@ -6,6 +6,7 @@ import { formatEther, parseEther } from "viem";
 import { toast } from "sonner";
 import { Card, StatCard } from "@/components/Card";
 import { ProgressBar } from "@/components/ProgressBar";
+import { GenesisCurve } from "@/components/GenesisCurve";
 import { ADDRESSES, hasContracts } from "@/lib/addresses";
 import { noxGenesisAbi } from "@/lib/abis";
 import { AlertTriangle, Flame, Clock } from "lucide-react";
@@ -129,6 +130,23 @@ export default function GenesisPage() {
             </div>
           </div>
           <ProgressBar value={progressPct} />
+        </Card>
+
+        {/* Launch price model chart */}
+        <Card className="mb-6">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-semibold text-fog">Launch price model</h2>
+            <span className="nox-chip">fixed → market</span>
+          </div>
+          <p className="text-sm text-mist mb-4">
+            Everyone mints at the same flat genesis price. When the cap fills and the pool seeds,
+            the v4 market opens around 3× higher.
+          </p>
+          <GenesisCurve
+            progress={cap && sold ? Number(sold) / Number(cap) : 0}
+            genesisPriceEth={price ? Number(formatEther(price)) : 0.00001}
+            ethRaised={ethRaised ? Number(formatEther(ethRaised)) : 0}
+          />
         </Card>
 
         <div className="grid md:grid-cols-3 gap-4 mb-6">
