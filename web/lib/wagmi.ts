@@ -19,7 +19,7 @@ const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || undefined;
 
 export const config = getDefaultConfig({
   appName: "Nox",
-  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? "00000000000000000000000000000000",
+  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "00000000000000000000000000000000",
   chains: [activeChain] as unknown as readonly [Chain, ...Chain[]],
   transports: {
     [activeChain.id]: http(rpcUrl),

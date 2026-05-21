@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/Card";
 import { Reveal } from "@/components/Reveal";
+import { Globe } from "@/components/Globe";
 import { ArrowRight, Coins, Eye, Sparkles, Lock, ShieldCheck } from "lucide-react";
 
 export default function HomePage() {
@@ -45,6 +46,11 @@ export default function HomePage() {
             <TrustItem>Uniswap v4</TrustItem>
             <TrustItem>ERC-5564</TrustItem>
             <TrustItem>no admin keys</TrustItem>
+          </div>
+
+          {/* Rotating network globe */}
+          <div className="mt-20 flex justify-center">
+            <Globe className="w-full max-w-[460px]" />
           </div>
         </div>
       </section>
