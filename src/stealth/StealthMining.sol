@@ -18,9 +18,9 @@ contract StealthMining {
     IERC20 public immutable token;
     address public immutable controller;
 
-    uint256 public constant MINING_SUPPLY = 200_000_000 ether;
+    uint256 public constant MINING_SUPPLY = 500_000_000 ether;
     uint256 public constant INITIAL_REWARD = 1_000 ether; // 1,000 NOX per stealth tx in era 0
-    uint256 public constant ERA_TX_COUNT = 100_000; // halving every 100k stealth tx
+    uint256 public constant ERA_TX_COUNT = 250_000; // halving every 250k stealth tx
 
     address public stealthSender;
     uint256 public txCount;

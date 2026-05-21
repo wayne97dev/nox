@@ -13,7 +13,7 @@ import { AlertTriangle, Flame, Clock } from "lucide-react";
 
 export default function GenesisPage() {
   const { address, isConnected } = useAccount();
-  const [units, setUnits] = useState<string>("100");
+  const [lots, setLots] = useState<string>("1");
   const [now, setNow] = useState<number>(Math.floor(Date.now() / 1000));
 
   useEffect(() => {
@@ -23,11 +23,11 @@ export default function GenesisPage() {
 
   const reads = useReadContracts({
     contracts: [
-      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "GENESIS_PRICE" },
-      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "GENESIS_UNIT" },
-      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "GENESIS_CAP_UNITS" },
-      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "MAX_UNITS_PER_TX" },
-      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "unitsSold" },
+      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "LOT_PRICE" },
+      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "TOKENS_PER_LOT" },
+      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "GENESIS_CAP_LOTS" },
+      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "MAX_LOTS_PER_TX" },
+      { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "lotsSold" },
       { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "closeAt" },
       { address: ADDRESSES.noxGenesis, abi: noxGenesisAbi, functionName: "seeded" },
       {
@@ -45,16 +45,16 @@ export default function GenesisPage() {
     (r) => (r?.status === "success" ? r.result : undefined),
   ) as [bigint?, bigint?, bigint?, bigint?, bigint?, bigint?, boolean?, bigint?];
 
-  const unitsBig = useMemo(() => {
+  const lotsBig = useMemo(() => {
     try {
-      return BigInt(units || "0");
+      return BigInt(lots || "0");
     } catch {
       return 0n;
     }
-  }, [units]);
+  }, [lots]);
 
-  const cost = price ? unitsBig * price : 0n;
-  const tokensReceived = unit ? unitsBig * unit : 0n;
+  const cost = price ? lotsBig * price : 0n;
+  const tokensReceived = unit ? lotsBig * unit : 0n;
   const progressPct = cap && sold ? Number((sold * 10_000n) / cap) / 100 : 0;
   const remaining = cap && sold ? cap - sold : 0n;
   const ethRaised = price && sold ? sold * price : 0n;
@@ -71,16 +71,16 @@ export default function GenesisPage() {
     }
   }, [isSuccess, reads]);
 
-  const txLimitExceeded = maxPerTx ? unitsBig > maxPerTx : false;
-  const capExceeded = cap && sold ? sold + unitsBig > cap : false;
-  const canMint = isConnected && unitsBig > 0n && !txLimitExceeded && !capExceeded && !seeded;
+  const txLimitExceeded = maxPerTx ? lotsBig > maxPerTx : false;
+  const capExceeded = cap && sold ? sold + lotsBig > cap : false;
+  const canMint = isConnected && lotsBig > 0n && !txLimitExceeded && !capExceeded && !seeded;
 
   const onMint = () => {
     writeContract({
       address: ADDRESSES.noxGenesis,
       abi: noxGenesisAbi,
       functionName: "mintGenesis",
-      args: [unitsBig],
+      args: [lotsBig],
       value: cost,
     });
   };
@@ -140,25 +140,29 @@ export default function GenesisPage() {
           </div>
           <p className="text-sm text-mist mb-4">
             Everyone mints at the same flat genesis price. When the cap fills and the pool seeds,
-            the v4 market opens around 3× higher.
+            the v4 market opens around 1.5× higher.
           </p>
           <GenesisCurve
             progress={cap && sold ? Number(sold) / Number(cap) : 0}
-            genesisPriceEth={price ? Number(formatEther(price)) : 0.00001}
+            genesisPriceEth={
+              price && unit
+                ? (Number(formatEther(price)) / Number(formatEther(unit))) * 1000
+                : 0.0000333
+            }
             ethRaised={ethRaised ? Number(formatEther(ethRaised)) : 0}
           />
         </Card>
 
         <div className="grid md:grid-cols-3 gap-4 mb-6">
           <StatCard
-            label="Price"
+            label="Lot price"
             value={price ? formatEther(price) + " ETH" : "—"}
-            sub={`per ${unit ? Number(formatEther(unit)).toLocaleString() : "—"} NOX`}
+            sub={`= ${unit ? Number(formatEther(unit)).toLocaleString() : "—"} NOX · min buy`}
           />
           <StatCard
             label="Remaining"
             value={remaining.toString()}
-            sub="units left in the cap"
+            sub="lots left in the cap"
           />
           <StatCard
             label={windowExpired ? "Window status" : "Window left"}
@@ -188,14 +192,17 @@ export default function GenesisPage() {
               </div>
             ) : (
               <>
-                <label className="nox-label">Units (1 unit = {unit ? Number(formatEther(unit)).toLocaleString() : "1,000"} NOX)</label>
+                <label className="nox-label">
+                  Lots · 1 lot = {price ? formatEther(price) : "0.01"} ETH ={" "}
+                  {unit ? Number(formatEther(unit)).toLocaleString() : "300,000"} NOX
+                </label>
                 <input
                   type="number"
                   inputMode="numeric"
                   min={1}
-                  max={maxPerTx ? Number(maxPerTx) : 10_000}
-                  value={units}
-                  onChange={(e) => setUnits(e.target.value)}
+                  max={maxPerTx ? Number(maxPerTx) : 50}
+                  value={lots}
+                  onChange={(e) => setLots(e.target.value)}
                   className="nox-input mb-4 font-mono"
                 />
 
@@ -216,7 +223,7 @@ export default function GenesisPage() {
 
                 {txLimitExceeded && (
                   <ValidationBanner>
-                    Max {maxPerTx?.toString()} units per tx.
+                    Max {maxPerTx?.toString()} lots per tx.
                   </ValidationBanner>
                 )}
                 {capExceeded && (

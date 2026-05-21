@@ -71,34 +71,34 @@ contract NoxTest is Test {
     // ------------------------------------------------------------------
 
     function test_mintGenesis_basicBuy() public {
-        uint256 units = 100;
-        uint256 cost = units * genesis.GENESIS_PRICE();
+        uint256 units = 30;
+        uint256 cost = units * genesis.LOT_PRICE();
 
         vm.prank(alice);
         genesis.mintGenesis{value: cost}(units);
 
-        assertEq(token.balanceOf(alice), units * genesis.GENESIS_UNIT());
-        assertEq(genesis.unitsSold(), units);
+        assertEq(token.balanceOf(alice), units * genesis.TOKENS_PER_LOT());
+        assertEq(genesis.lotsSold(), units);
         assertEq(address(genesis).balance, cost);
     }
 
     function test_mintGenesis_revertsOnWrongPayment() public {
         vm.prank(alice);
         vm.expectRevert(NoxGenesis.WrongPayment.selector);
-        genesis.mintGenesis{value: 1}(100);
+        genesis.mintGenesis{value: 1}(30);
     }
 
     function test_mintGenesis_revertsOnExceedTxLimit() public {
-        uint256 units = genesis.MAX_UNITS_PER_TX() + 1;
-        uint256 cost = units * genesis.GENESIS_PRICE();
+        uint256 units = genesis.MAX_LOTS_PER_TX() + 1;
+        uint256 cost = units * genesis.LOT_PRICE();
         vm.deal(alice, cost);
         vm.prank(alice);
-        vm.expectRevert(NoxGenesis.TooManyUnits.selector);
+        vm.expectRevert(NoxGenesis.TooManyLots.selector);
         genesis.mintGenesis{value: cost}(units);
     }
 
     function test_mintGenesis_revertsOnExceedBlockLimit() public {
-        uint256 cost = genesis.GENESIS_PRICE();
+        uint256 cost = genesis.LOT_PRICE();
         uint256 maxPerBlock = genesis.MAX_MINTS_PER_BLOCK();
         for (uint256 i; i < maxPerBlock; i++) {
             vm.prank(alice);
@@ -110,9 +110,9 @@ contract NoxTest is Test {
     }
 
     function test_transfer_blockedBeforeSeed() public {
-        uint256 cost = 100 * genesis.GENESIS_PRICE();
+        uint256 cost = 30 * genesis.LOT_PRICE();
         vm.prank(alice);
-        genesis.mintGenesis{value: cost}(100);
+        genesis.mintGenesis{value: cost}(30);
 
         vm.prank(alice);
         vm.expectRevert(NoxToken.TransfersLocked.selector);
@@ -137,9 +137,9 @@ contract NoxTest is Test {
     }
 
     function test_seedPool_onlyControllerWhenWindowEndsButCapNotReached() public {
-        uint256 cost = 100 * genesis.GENESIS_PRICE();
+        uint256 cost = 30 * genesis.LOT_PRICE();
         vm.prank(alice);
-        genesis.mintGenesis{value: cost}(100);
+        genesis.mintGenesis{value: cost}(30);
 
         vm.warp(block.timestamp + 8 days);
 
@@ -165,13 +165,13 @@ contract NoxTest is Test {
     }
 
     function test_seedPool_canTransferAfterSeed() public {
-        uint256 units = 100;
-        uint256 cost = units * genesis.GENESIS_PRICE();
+        uint256 units = 30;
+        uint256 cost = units * genesis.LOT_PRICE();
         vm.prank(alice);
         genesis.mintGenesis{value: cost}(units);
 
         uint256 aliceBefore = token.balanceOf(alice);
-        assertEq(aliceBefore, units * genesis.GENESIS_UNIT(), "alice didn't actually mint");
+        assertEq(aliceBefore, units * genesis.TOKENS_PER_LOT(), "alice didn't actually mint");
 
         _fillCapFrom(bob);
         genesis.seedPool();
@@ -186,9 +186,9 @@ contract NoxTest is Test {
     // ------------------------------------------------------------------
 
     function test_refund_revertsBeforeGrace() public {
-        uint256 cost = 100 * genesis.GENESIS_PRICE();
+        uint256 cost = 30 * genesis.LOT_PRICE();
         vm.prank(alice);
-        genesis.mintGenesis{value: cost}(100);
+        genesis.mintGenesis{value: cost}(30);
 
         vm.warp(block.timestamp + 8 days);
         vm.prank(alice);
@@ -197,9 +197,9 @@ contract NoxTest is Test {
     }
 
     function test_refund_paysOutAfterGrace() public {
-        uint256 cost = 100 * genesis.GENESIS_PRICE();
+        uint256 cost = 30 * genesis.LOT_PRICE();
         vm.prank(alice);
-        genesis.mintGenesis{value: cost}(100);
+        genesis.mintGenesis{value: cost}(30);
 
         vm.warp(block.timestamp + 8 days + 49 hours);
 
@@ -280,13 +280,13 @@ contract NoxTest is Test {
     }
 
     function _fillCapFrom(address from) internal {
-        uint256 cap = genesis.GENESIS_CAP_UNITS();
-        uint256 perTx = genesis.MAX_UNITS_PER_TX();
+        uint256 cap = genesis.GENESIS_CAP_LOTS();
+        uint256 perTx = genesis.MAX_LOTS_PER_TX();
         uint256 perBlock = genesis.MAX_MINTS_PER_BLOCK();
-        uint256 price = genesis.GENESIS_PRICE();
+        uint256 price = genesis.LOT_PRICE();
         vm.deal(from, cap * price);
 
-        uint256 sold = genesis.unitsSold();
+        uint256 sold = genesis.lotsSold();
         while (sold < cap) {
             vm.roll(block.number + 1);
             for (uint256 i; i < perBlock && sold < cap; i++) {

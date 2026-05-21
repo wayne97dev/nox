@@ -215,10 +215,10 @@ contract StealthTest is Test {
 
     function _seedTokenForAlice() internal {
         // Fill genesis cap so we can seed the pool and unlock transfers, then make alice rich.
-        uint256 cap = genesis.GENESIS_CAP_UNITS();
-        uint256 perTx = genesis.MAX_UNITS_PER_TX();
+        uint256 cap = genesis.GENESIS_CAP_LOTS();
+        uint256 perTx = genesis.MAX_LOTS_PER_TX();
         uint256 perBlock = genesis.MAX_MINTS_PER_BLOCK();
-        uint256 price = genesis.GENESIS_PRICE();
+        uint256 price = genesis.LOT_PRICE();
         vm.deal(alice, cap * price);
 
         uint256 sold;

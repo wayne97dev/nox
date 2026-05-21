@@ -5,7 +5,7 @@
 **Versione:** 0.1 · maggio 2026
 **Repository:** [github.com/wayne97dev/nox](https://github.com/wayne97dev/nox)
 **Chain target:** Base (Ethereum L2)
-**Tagline:** *Pay in the dark.*
+**Tagline:** *Private payments on Base.*
 
 ---
 
@@ -103,9 +103,9 @@ Nox è composto da **7 smart contract** + una **dApp web** + una **stealth crypt
 │                                          ┌────────────────────────────┐  │
 │                                          │       StealthMining        │  │
 │                                          │  ───────────────────────   │  │
-│                                          │  - holds 200M NOX          │  │
+│                                          │  - holds 500M NOX          │  │
 │                                          │  - 1000 NOX per tx era 0   │  │
-│                                          │  - halving ogni 100k tx    │  │
+│                                          │  - halving ogni 250k tx    │  │
 │                                          │  - cap MINING_SUPPLY       │  │
 │                                          └────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -158,9 +158,9 @@ Una volta che `NoxGenesis` chiama `sealMinting()` (in coda a `seedPool()`), `min
 
 | Allocazione | Quantità | % | Destinazione |
 |---|---:|---:|---|
-| Genesis sale | 600,000,000 | 60% | Buyer pubblici a 0.00001 ETH per 1,000 NOX |
+| Genesis sale | 300,000,000 | 30% | Buyer pubblici a 0.01 ETH per 300,000 NOX (1 lot) |
 | Liquidity pool | 200,000,000 | 20% | Seeded full-range nella v4 pool, **LP locked forever** |
-| Stealth mining | 200,000,000 | 20% | Emessi via `StealthMining` con halving |
+| Stealth mining | 500,000,000 | 50% | Emessi via `StealthMining` con halving |
 | **Totale** | **1,000,000,000** | **100%** | |
 
 **Nessuna allocazione team/insider.** Nessuna allocazione marketing. Nessuna allocazione "treasury" pre-mint. Il treasury si forma esclusivamente dall'1% di fee sugli swap post-seed.
@@ -171,15 +171,15 @@ Una volta che `NoxGenesis` chiama `sealMinting()` (in coda a `seedPool()`), `min
 
 ### 4.1 Modello
 
-Vendita a **prezzo fisso** per un periodo fisso ("window"), con cap massimo. Non è una bonding curve nel senso classico (no formula `x*y=k`, no prezzo che cresce con la domanda): è più simile a un **bond fundraise** in cui ogni token ha lo stesso costo per tutti i buyer.
+Vendita a **prezzo fisso** per un periodo fisso ("window"), con cap massimo. Non è una bonding curve nel senso classico (no formula `x*y=k`, no prezzo che cresce con la domanda): è più simile a un **bond fundraise** in cui ogni token ha lo stesso costo per tutti i buyer. L'unità di acquisto indivisibile è il **lot**.
 
 | Parametro | Valore | Note |
 |---|---|---|
-| `GENESIS_PRICE` | 0.00001 ETH | per ogni unità di acquisto |
-| `GENESIS_UNIT` | 1,000 NOX | quanto NOX riceve una unità |
-| `GENESIS_CAP_UNITS` | 600,000 | unità totali in vendita |
-| **Implied raise** | **6 ETH** | cap pieno = 6 ETH raccolti |
-| `MAX_UNITS_PER_TX` | 10,000 | = 10M NOX per transazione, ~1.7% del cap |
+| `LOT_PRICE` | 0.01 ETH | prezzo di 1 lot = **min buy** |
+| `TOKENS_PER_LOT` | 300,000 NOX | quanto NOX riceve 1 lot |
+| `GENESIS_CAP_LOTS` | 1,000 | lots totali in vendita |
+| **Implied raise** | **10 ETH** | cap pieno = 10 ETH raccolti |
+| `MAX_LOTS_PER_TX` | 50 | = 0.5 ETH / 15M NOX per transazione, 5% del cap |
 | `MAX_MINTS_PER_BLOCK` | 5 | anti block-stuffing |
 | Window | configurabile al deploy (default 7 giorni) | |
 | `REFUND_GRACE` | 48 ore | dopo close window se nessun seed |
@@ -188,11 +188,11 @@ Vendita a **prezzo fisso** per un periodo fisso ("window"), con cap massimo. Non
 
 Due meccanismi semplici ma efficaci:
 
-1. **Per-tx cap:** `MAX_UNITS_PER_TX = 10,000` impedisce ad un singolo buyer di prendere tutto il cap in una transazione. Nei fatti, riempire il cap richiede minimo 60 transazioni.
+1. **Per-tx cap:** `MAX_LOTS_PER_TX = 50` impedisce ad un singolo buyer di prendere tutto il cap in una transazione. Nei fatti, riempire il cap richiede minimo 20 transazioni.
 
 2. **Per-block cap:** `MAX_MINTS_PER_BLOCK = 5` impedisce a un bot di occupare l'intero blocco con `mintGenesis` calls. Su Base un blocco è 2 secondi, quindi al massimo 5 mint ogni 2s.
 
-Combinato: il cap minimo di tempo per saturare il sale è ≈ 60 / 5 × 2s = **24 secondi**, ma realisticamente molto più dato che diversi utenti competono per gli slot per blocco.
+Combinato: il cap minimo di tempo per saturare il sale è ≈ 20 / 5 × 2s = **8 secondi**, ma realisticamente molto più dato che diversi utenti competono per gli slot per blocco.
 
 ### 4.3 Sicurezza del raise
 
@@ -258,7 +258,7 @@ Per noi:
 
 `NoxGenesis.seedPool()` esegue, in atomico:
 
-1. Calcola `sqrtPriceX96` iniziale come `sqrt(LP_SUPPLY / ethRaised) × 2⁹⁶`. Con cap pieno: `sqrt(200,000,000e18 / 6e18) × 2⁹⁶ ≈ 5773.5 × 2⁹⁶`.
+1. Calcola `sqrtPriceX96` iniziale come `sqrt(LP_SUPPLY / ethRaised) × 2⁹⁶`. Con cap pieno: `sqrt(200,000,000e18 / 10e18) × 2⁹⁶ ≈ 4472 × 2⁹⁶`.
 
 2. Chiama `poolManager.initialize(poolKey, sqrtPriceX96)` — crea la pool al prezzo iniziale.
 
@@ -279,7 +279,7 @@ Per noi:
 La posizione di liquidità è registrata al PoolManager come appartenente a `NoxGenesis`. **`NoxGenesis` non espone nessuna funzione di removeLiquidity.** Codice completo dell'interfaccia esterna:
 
 ```solidity
-function mintGenesis(uint256 units) external payable;
+function mintGenesis(uint256 lots) external payable;
 function seedPool() external;
 function refund() external;
 function unlockCallback(bytes calldata data) external returns (bytes memory);
@@ -416,9 +416,9 @@ Il design è ispirato al **modello Bitcoin di halving**, applicato però ad un c
 
 | Parametro | Valore | Note |
 |---|---|---|
-| `MINING_SUPPLY` | 200,000,000 NOX | 20% del total supply |
+| `MINING_SUPPLY` | 500,000,000 NOX | 50% del total supply |
 | `INITIAL_REWARD` | 1,000 NOX | reward al sender per la prima tx dell'era 0 |
-| `ERA_TX_COUNT` | 100,000 | numero di tx dopo cui la reward dimezza |
+| `ERA_TX_COUNT` | 250,000 | numero di tx dopo cui la reward dimezza |
 | Reward in era *n* | `INITIAL_REWARD / 2ⁿ` | halving |
 | Emission cap | `MINING_SUPPLY` | la reward si azzera quando il cap è raggiunto |
 
@@ -426,15 +426,15 @@ Il design è ispirato al **modello Bitcoin di halving**, applicato però ad un c
 
 | Era | Reward / tx | Tx range | NOX emessi nell'era | Cumulativo |
 |---:|---:|:---|---:|---:|
-| 0 | 1,000 | 0–99,999 | 100,000,000 | 100,000,000 |
-| 1 | 500 | 100,000–199,999 | 50,000,000 | 150,000,000 |
-| 2 | 250 | 200,000–299,999 | 25,000,000 | 175,000,000 |
-| 3 | 125 | 300,000–399,999 | 12,500,000 | 187,500,000 |
-| 4 | 62.5 | 400,000–499,999 | 6,250,000 | 193,750,000 |
+| 0 | 1,000 | 0–249,999 | 250,000,000 | 250,000,000 |
+| 1 | 500 | 250,000–499,999 | 125,000,000 | 375,000,000 |
+| 2 | 250 | 500,000–749,999 | 62,500,000 | 437,500,000 |
+| 3 | 125 | 750,000–999,999 | 31,250,000 | 468,750,000 |
+| 4 | 62.5 | 1,000,000–1,249,999 | 15,625,000 | 484,375,000 |
 | ... | ... | ... | ... | ... |
-| n→∞ | →0 | — | →0 | **→200,000,000** |
+| n→∞ | →0 | — | →0 | **→500,000,000** |
 
-La serie converge geometricamente a `INITIAL_REWARD × ERA_TX_COUNT × 2 = 200,000,000`, esattamente `MINING_SUPPLY`. Il contratto include comunque un hard cap che azzera la reward se per qualunque motivo si arrivasse a sforare.
+La serie converge geometricamente a `INITIAL_REWARD × ERA_TX_COUNT × 2 = 500,000,000`, esattamente `MINING_SUPPLY`. Il contratto include comunque un hard cap che azzera la reward se per qualunque motivo si arrivasse a sforare.
 
 ### 7.3 Perché premiare *l'uso degli stealth* e non altre attività
 
@@ -453,7 +453,7 @@ Discussione delle alternative considerate:
 Il modello attuale paga **al sender** un flat reward per ogni `sendStealthNox`. Vantaggi:
 
 - **Semplice da farmare onesto:** chiunque voglia pagare un fornitore o donare a un creator, se passa per `NoxStealthSender`, prende il bonus.
-- **Sybil-resistant ragionevolmente:** ogni tx costa gas (~$0.01–0.10 su Base) + richiede di avere NOX da spendere. Sybilare 100k tx costa minimo $1k di gas + capitale di NOX bloccato — e ad ogni halving il rendimento di farming dimezza.
+- **Sybil-resistant ragionevolmente:** ogni tx costa gas (~$0.01–0.10 su Base) + richiede di avere NOX da spendere. Sybilare 250k tx costa minimo $2.5k di gas + capitale di NOX bloccato — e ad ogni halving il rendimento di farming dimezza.
 - **Non incentiva volumi gonfiati:** è flat per tx, non proporzionale all'amount, quindi non favorisce wash-trading di importi grandi.
 
 Limitazione nota: un sender può creare 1000 stealth address suoi e pagarli a se stesso. Però (a) costa gas, (b) ogni tx è on-chain visibile come "sender Alice ha pagato a stealth-addr", (c) il sender potrebbe scoprirsi se i suoi stealth address fanno operazioni successive collegabili.
@@ -466,8 +466,8 @@ Limitazione nota: un sender può creare 1000 stealth address suoi e pagarli a se
 
 ```
 status: !seeded, block.timestamp < closeAt
-buyer: chiama mintGenesis(units), invia ETH
-state: unitsSold cresce, NOX nel wallet ma intransferibili
+buyer: chiama mintGenesis(lots), invia ETH
+state: lotsSold cresce, NOX nel wallet ma intransferibili
 exit:  attendi seed | attendi window | (eventualmente) refund post-grace
 ```
 
@@ -475,7 +475,7 @@ exit:  attendi seed | attendi window | (eventualmente) refund post-grace
 
 **Cap raggiunto:**
 ```
-status: unitsSold == GENESIS_CAP_UNITS
+status: lotsSold == GENESIS_CAP_LOTS
 trigger: chiunque (gas-payer) chiama seedPool()
 effect: pool v4 inizializzata, LP locked, MINING_SUPPLY mint al StealthMining
         contract, mintingClosed = true, transfers unlocked
@@ -510,8 +510,8 @@ trasf:   liberi tra wallet, ai DEX, ovunque
 receiver: registerKeys() una volta in StealthRegistry
 sender:   approve(NoxStealthSender, amount) + sendStealthNox(...)
 mining:   ogni send paga reward al sender, contatore txCount++
-halving:  ogni 100k tx la reward dimezza
-fine:     quando totalMined == MINING_SUPPLY (~200k tx in era 0), reward = 0
+halving:  ogni 250k tx la reward dimezza
+fine:     quando totalMined == MINING_SUPPLY, reward = 0
 ```
 
 L'emission del mining si esaurisce in modo geometrico. Anche dopo l'esaurimento, gli stealth payments continuano a funzionare normalmente — solo senza reward.

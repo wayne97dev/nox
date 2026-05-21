@@ -34,15 +34,17 @@ contract NoxGenesis is IUnlockCallback {
     IHooks public immutable hook;
     address public immutable controller;
 
-    uint256 public constant GENESIS_SUPPLY = 600_000_000 ether;
+    uint256 public constant GENESIS_SUPPLY = 300_000_000 ether;
     uint256 public constant LP_SUPPLY = 200_000_000 ether;
-    uint256 public constant MINING_SUPPLY = 200_000_000 ether;
+    uint256 public constant MINING_SUPPLY = 500_000_000 ether;
 
-    uint256 public constant GENESIS_UNIT = 1_000 ether;
-    uint256 public constant GENESIS_PRICE = 0.00001 ether;
-    uint256 public constant GENESIS_CAP_UNITS = 600_000;
+    // A "lot" is the indivisible genesis purchase: 0.01 ETH buys 300,000 NOX.
+    // 1,000 lots fill the cap → 10 ETH raised, 300M NOX (30% of supply) distributed.
+    uint256 public constant TOKENS_PER_LOT = 300_000 ether;
+    uint256 public constant LOT_PRICE = 0.01 ether;
+    uint256 public constant GENESIS_CAP_LOTS = 1_000;
 
-    uint256 public constant MAX_UNITS_PER_TX = 10_000;
+    uint256 public constant MAX_LOTS_PER_TX = 50;
     uint256 public constant MAX_MINTS_PER_BLOCK = 5;
 
     uint256 public constant REFUND_GRACE = 48 hours;
@@ -54,14 +56,14 @@ contract NoxGenesis is IUnlockCallback {
 
     uint256 public immutable closeAt;
 
-    uint256 public unitsSold;
+    uint256 public lotsSold;
     mapping(address => uint256) public ethPaid;
     mapping(uint256 => uint256) public mintsInBlock;
 
     bool public seeded;
     PoolKey public poolKey;
 
-    event GenesisBought(address indexed buyer, uint256 units, uint256 ethPaid);
+    event GenesisBought(address indexed buyer, uint256 lots, uint256 ethPaid);
     event PoolSeeded(uint256 ethSeeded, uint256 noxSeeded, uint160 sqrtPriceX96, uint128 liquidity);
     event Refunded(address indexed buyer, uint256 amount);
 
@@ -69,8 +71,8 @@ contract NoxGenesis is IUnlockCallback {
     error WindowClosed();
     error WindowOpen();
     error CapReached();
-    error ZeroUnits();
-    error TooManyUnits();
+    error ZeroLots();
+    error TooManyLots();
     error BlockLimitHit();
     error WrongPayment();
     error AlreadySeeded();
@@ -93,22 +95,22 @@ contract NoxGenesis is IUnlockCallback {
     // Genesis sale
     // ------------------------------------------------------------------
 
-    function mintGenesis(uint256 units) external payable {
+    function mintGenesis(uint256 lots) external payable {
         if (seeded) revert WindowClosed();
         if (block.timestamp >= closeAt) revert WindowClosed();
-        if (units == 0) revert ZeroUnits();
-        if (units > MAX_UNITS_PER_TX) revert TooManyUnits();
-        if (unitsSold + units > GENESIS_CAP_UNITS) revert CapReached();
-        if (msg.value != units * GENESIS_PRICE) revert WrongPayment();
+        if (lots == 0) revert ZeroLots();
+        if (lots > MAX_LOTS_PER_TX) revert TooManyLots();
+        if (lotsSold + lots > GENESIS_CAP_LOTS) revert CapReached();
+        if (msg.value != lots * LOT_PRICE) revert WrongPayment();
 
         uint256 mints = ++mintsInBlock[block.number];
         if (mints > MAX_MINTS_PER_BLOCK) revert BlockLimitHit();
 
-        unitsSold += units;
+        lotsSold += lots;
         ethPaid[msg.sender] += msg.value;
-        token.mint(msg.sender, units * GENESIS_UNIT);
+        token.mint(msg.sender, lots * TOKENS_PER_LOT);
 
-        emit GenesisBought(msg.sender, units, msg.value);
+        emit GenesisBought(msg.sender, lots, msg.value);
     }
 
     // ------------------------------------------------------------------
@@ -117,7 +119,7 @@ contract NoxGenesis is IUnlockCallback {
 
     function seedPool() external {
         if (seeded) revert AlreadySeeded();
-        bool capReached = unitsSold == GENESIS_CAP_UNITS;
+        bool capReached = lotsSold == GENESIS_CAP_LOTS;
         bool windowEnded = block.timestamp >= closeAt;
         if (!capReached && !windowEnded) revert WindowOpen();
         if (!capReached && msg.sender != controller) revert NotController();

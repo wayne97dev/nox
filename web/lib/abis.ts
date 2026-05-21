@@ -4,28 +4,28 @@
 export const noxGenesisAbi = [
   {
     type: "function",
-    name: "GENESIS_PRICE",
+    name: "LOT_PRICE",
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
   },
   {
     type: "function",
-    name: "GENESIS_UNIT",
+    name: "TOKENS_PER_LOT",
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
   },
   {
     type: "function",
-    name: "GENESIS_CAP_UNITS",
+    name: "GENESIS_CAP_LOTS",
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
   },
   {
     type: "function",
-    name: "MAX_UNITS_PER_TX",
+    name: "MAX_LOTS_PER_TX",
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
@@ -39,7 +39,7 @@ export const noxGenesisAbi = [
   },
   {
     type: "function",
-    name: "unitsSold",
+    name: "lotsSold",
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
@@ -89,7 +89,7 @@ export const noxGenesisAbi = [
     type: "function",
     name: "mintGenesis",
     stateMutability: "payable",
-    inputs: [{ name: "units", type: "uint256" }],
+    inputs: [{ name: "lots", type: "uint256" }],
     outputs: [],
   },
   {
@@ -111,7 +111,7 @@ export const noxGenesisAbi = [
     name: "GenesisBought",
     inputs: [
       { name: "buyer", type: "address", indexed: true },
-      { name: "units", type: "uint256", indexed: false },
+      { name: "lots", type: "uint256", indexed: false },
       { name: "ethPaid", type: "uint256", indexed: false },
     ],
   },

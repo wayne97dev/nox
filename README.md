@@ -15,27 +15,27 @@ migration to a Uniswap v4 pool with a 1% swap fee hook routed to the treasury.
 | [`src/stealth/StealthRegistry.sol`](src/stealth/StealthRegistry.sol) | ERC-6538 registry: users publish a stealth meta-address. |
 | [`src/stealth/StealthAnnouncer.sol`](src/stealth/StealthAnnouncer.sol) | ERC-5564 announcer: emits the discovery event for stealth payments. |
 | [`src/stealth/NoxStealthSender.sol`](src/stealth/NoxStealthSender.sol) | One-call helper: pull NOX, send to stealth address, announce, claim mining reward. |
-| [`src/stealth/StealthMining.sol`](src/stealth/StealthMining.sol) | Holds 200M mining supply, pays flat per-tx reward with Bitcoin-style halving every 100k stealth tx. |
+| [`src/stealth/StealthMining.sol`](src/stealth/StealthMining.sol) | Holds 500M mining supply, pays flat per-tx reward with Bitcoin-style halving every 250k stealth tx. |
 
 ## Parameters
 
 | Constant | Value | Notes |
 |---|---|---|
 | `MAX_SUPPLY` | 1,000,000,000 NOX | 18 decimals |
-| `GENESIS_SUPPLY` | 600,000,000 NOX | 60% sold on the curve |
+| `GENESIS_SUPPLY` | 300,000,000 NOX | 30% sold in the genesis |
 | `LP_SUPPLY` | 200,000,000 NOX | 20% seeded into v4 LP |
-| `MINING_SUPPLY` | 200,000,000 NOX | 20% reserved for stealth-mining rewards |
-| `GENESIS_UNIT` | 1,000 NOX | smallest purchase unit |
-| `GENESIS_PRICE` | 0.00001 ETH / unit | 6 ETH to fill cap |
-| `GENESIS_CAP_UNITS` | 600,000 | 600M NOX cap |
-| `MAX_UNITS_PER_TX` | 10,000 | 10M NOX per tx |
+| `MINING_SUPPLY` | 500,000,000 NOX | 50% reserved for stealth-mining rewards |
+| `TOKENS_PER_LOT` | 300,000 NOX | tokens per lot (the indivisible buy unit) |
+| `LOT_PRICE` | 0.01 ETH / lot | min buy = 1 lot; 10 ETH to fill cap |
+| `GENESIS_CAP_LOTS` | 1,000 | 300M NOX cap |
+| `MAX_LOTS_PER_TX` | 50 | 0.5 ETH / 15M NOX per tx |
 | `MAX_MINTS_PER_BLOCK` | 5 | anti-block-stuffing |
 | `REFUND_GRACE` | 48 h | refund window if seed fails |
 | `LP_FEE` | 0 | LP fee disabled — hook charges instead |
 | `SWAP_FEE_BPS` | 100 (1%) | charged on output side, sent to a single immutable `treasury` |
 | `TICK_SPACING` | 60 | full-range LP |
 | `INITIAL_REWARD` | 1,000 NOX | per stealth tx in era 0 |
-| `ERA_TX_COUNT` | 100,000 | halving every 100k stealth tx |
+| `ERA_TX_COUNT` | 250,000 | halving every 250k stealth tx |
 
 ## Build & test
 
@@ -111,10 +111,10 @@ callers. The call is one-shot — once set, it can never be changed.
 
 ## Lifecycle
 
-1. **Genesis** — `mintGenesis(units)` with `units * GENESIS_PRICE` wei.
+1. **Genesis** — `mintGenesis(lots)` with `lots * LOT_PRICE` wei (min 1 lot = 0.01 ETH).
    Subject to per-tx and per-block caps. NOX is minted to the buyer but
    non-transferable.
-2. **Seed** — when `unitsSold == GENESIS_CAP_UNITS`, anyone can call
+2. **Seed** — when `lotsSold == GENESIS_CAP_LOTS`, anyone can call
    `seedPool()`. The contract initializes the v4 pool, deposits all
    raised ETH and mints exactly the required NOX into a full-range LP
    position owned by itself, then permanently seals NOX minting and
@@ -143,7 +143,7 @@ privacy choose how much they want.
 ### Stealth-mining incentive
 
 Every successful `sendStealthNox` call pays the sender a flat NOX reward from the
-200M `MINING_SUPPLY`. The reward halves every `ERA_TX_COUNT = 100,000` stealth
+500M `MINING_SUPPLY`. The reward halves every `ERA_TX_COUNT = 250,000` stealth
 transactions (Bitcoin-style geometric emission), so total payout asymptotes to
 `MINING_SUPPLY` and never exceeds it. There's no cliff — once the supply is fully
 distributed `recordAndReward` silently returns 0 and stealth sends keep working.

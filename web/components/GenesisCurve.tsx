@@ -29,9 +29,10 @@ const GENESIS_END = 60; // 60% genesis
 const LP_END = 80; // +20% LP
 
 export function GenesisCurve({ progress, genesisPriceEth, ethRaised }: GenesisCurveProps) {
-  const gp = genesisPriceEth || 0.00001;
-  const lp = gp * 3; // full-cap market-open price (6 ETH / 200M = 3× genesis)
-  const maxY = lp * 1.4;
+  const gp = genesisPriceEth || 0.0000333;
+  // Market opens at GENESIS_SUPPLY / LP_SUPPLY = 300M / 200M = 1.5× the genesis price.
+  const lp = gp * 1.5;
+  const maxY = lp * 1.5;
 
   const plotW = VB_W - PAD.l - PAD.r;
   const plotH = VB_H - PAD.t - PAD.b;
@@ -167,7 +168,7 @@ export function GenesisCurve({ progress, genesisPriceEth, ethRaised }: GenesisCu
           GENESIS · fixed price
         </text>
         <text x={(xGenEnd + px(100)) / 2} y={VB_H - 16} textAnchor="middle" fontSize="19" fill="#60A5FA" fontWeight="600">
-          MARKET · v4 pool (~3×)
+          MARKET · v4 pool (~1.5×)
         </text>
 
         {/* seed divider label */}

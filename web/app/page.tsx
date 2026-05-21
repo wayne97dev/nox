@@ -56,7 +56,7 @@ export default function HomePage() {
             <FeatureCard
               icon={<Coins className="h-5 w-5" />}
               title="Genesis Sale"
-              body="Fixed 0.00001 ETH per 1,000 NOX. 600M cap, anti-bot per-block limits, refund fallback if the seed never happens."
+              body="Fixed 0.01 ETH per 300,000 NOX (min buy). 300M cap, anti-bot per-block limits, refund fallback if the seed never happens."
               href="/genesis"
               cta="Open Genesis"
             />
@@ -74,7 +74,7 @@ export default function HomePage() {
             <FeatureCard
               icon={<Sparkles className="h-5 w-5" />}
               title="Stealth Mining"
-              body="Earn NOX on every stealth send. 1,000 NOX per tx in era 0, halving every 100k tx, capped at 200M MINING_SUPPLY."
+              body="Earn NOX on every stealth send. 1,000 NOX per tx in era 0, halving every 250k tx, capped at 500M MINING_SUPPLY."
               href="/stealth/send"
               cta="Send & earn"
             />
@@ -90,13 +90,13 @@ export default function HomePage() {
       >
         <div className="grid sm:grid-cols-3 gap-5">
           <Reveal>
-            <TokenCard pct="60%" label="Genesis" detail="600M · 6 ETH target" />
+            <TokenCard pct="30%" label="Genesis" detail="300M · 10 ETH target" />
           </Reveal>
           <Reveal delay={90}>
             <TokenCard pct="20%" label="Liquidity" detail="200M · locked in v4 pool" />
           </Reveal>
           <Reveal delay={180}>
-            <TokenCard pct="20%" label="Mining" detail="200M · stealth rewards" />
+            <TokenCard pct="50%" label="Mining" detail="500M · stealth rewards" />
           </Reveal>
         </div>
         <p className="mt-6 text-center text-sm text-mist/70 font-light">
@@ -108,7 +108,7 @@ export default function HomePage() {
       <Section eyebrow="lifecycle" title="How it works" subtitle="Four phases. No upgrades, no admin keys after seed.">
         <div className="grid md:grid-cols-2 gap-5">
           {[
-            { n: "01", title: "Genesis", body: "Mint NOX at a fixed 0.00001 ETH per 1,000 tokens. Transfers locked. Cap = 6 ETH raise." },
+            { n: "01", title: "Genesis", body: "Mint NOX at a fixed 0.01 ETH per 300,000 tokens (min buy). Transfers locked. Cap = 10 ETH raise." },
             { n: "02", title: "Seed", body: "Cap reached → anyone calls seedPool(). Uniswap v4 pool opens full-range, LP locked forever, mint sealed." },
             { n: "03", title: "Trade", body: "NOX/ETH on Base via Uniswap v4. Every swap pays a 1% fee through the NoxHook directly to the treasury." },
             { n: "04", title: "Stealth & mine", body: "Receivers publish a meta-address; senders generate one-time stealth addresses. Each send pays the sender a mining reward." },
