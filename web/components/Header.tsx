@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Github, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { ConnectWallet } from "./ConnectWallet";
 
 const NAV = [
@@ -12,8 +12,7 @@ const NAV = [
   { href: "/stats", label: "Stats" },
 ];
 
-const WHITEPAPER_URL = "https://github.com/wayne97dev/nox/blob/main/Nox-Whitepaper.pdf";
-const GITHUB_URL = "https://github.com/wayne97dev/nox";
+const WHITEPAPER_URL = "/Nox-Whitepaper.pdf";
 const X_URL = "https://x.com";
 const TELEGRAM_URL = "https://t.me";
 
@@ -60,9 +59,6 @@ export function Header() {
           <div className="hidden md:flex items-center gap-0.5 pr-1.5 mr-1.5 border-r border-white/[0.08]">
             <IconLink href={WHITEPAPER_URL} label="Whitepaper">
               <FileText className="h-4 w-4" />
-            </IconLink>
-            <IconLink href={GITHUB_URL} label="GitHub">
-              <Github className="h-4 w-4" />
             </IconLink>
             <IconLink href={X_URL} label="X">
               <XIcon />

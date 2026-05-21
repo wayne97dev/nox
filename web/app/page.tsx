@@ -145,7 +145,7 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
                 <a
-                  href="https://github.com/wayne97dev/nox/blob/main/Nox-Whitepaper.pdf"
+                  href="/Nox-Whitepaper.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="nox-btn-ghost"

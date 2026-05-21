@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Github, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 
-const GITHUB_URL = "https://github.com/wayne97dev/nox";
-const WHITEPAPER_URL = "https://github.com/wayne97dev/nox/blob/main/Nox-Whitepaper.pdf";
+const WHITEPAPER_URL = "/Nox-Whitepaper.pdf";
 const X_URL = "https://x.com";
 const TELEGRAM_URL = "https://t.me";
 
@@ -43,7 +42,6 @@ export function SiteFooter() {
             </FooterCol>
             <FooterCol title="Resources">
               <FooterLinkExt href={WHITEPAPER_URL}>Whitepaper</FooterLinkExt>
-              <FooterLinkExt href={GITHUB_URL}>GitHub</FooterLinkExt>
             </FooterCol>
             <FooterCol title="Community">
               <FooterLinkExt href={X_URL}>X / Twitter</FooterLinkExt>
@@ -59,9 +57,6 @@ export function SiteFooter() {
           <div className="flex items-center gap-1">
             <FooterIcon href={WHITEPAPER_URL} label="Whitepaper">
               <FileText className="h-4 w-4" />
-            </FooterIcon>
-            <FooterIcon href={GITHUB_URL} label="GitHub">
-              <Github className="h-4 w-4" />
             </FooterIcon>
             <FooterIcon href={X_URL} label="X">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
