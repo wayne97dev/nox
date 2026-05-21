@@ -50,7 +50,7 @@ contract NoxTest is Test {
         require(deployed == expectedHook, "test: wrong hook address");
         hook = NoxHook(payable(deployed));
 
-        genesis = new NoxGenesis(poolManager, IHooks(address(hook)), controller, 7 days);
+        genesis = new NoxGenesis("Nox", "NOX", poolManager, IHooks(address(hook)), controller, 7 days);
         token = genesis.token();
 
         vm.deal(alice, 100 ether);

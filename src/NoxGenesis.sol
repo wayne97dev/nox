@@ -82,12 +82,19 @@ contract NoxGenesis is IUnlockCallback {
     error NotPoolManager();
     error NoEthRaised();
 
-    constructor(IPoolManager _poolManager, IHooks _hook, address _controller, uint256 _windowSeconds) {
+    constructor(
+        string memory tokenName_,
+        string memory tokenSymbol_,
+        IPoolManager _poolManager,
+        IHooks _hook,
+        address _controller,
+        uint256 _windowSeconds
+    ) {
         poolManager = _poolManager;
         hook = _hook;
         controller = _controller;
         closeAt = block.timestamp + _windowSeconds;
-        token = new NoxToken(address(this));
+        token = new NoxToken(tokenName_, tokenSymbol_, address(this));
         mining = new StealthMining(token, _controller);
     }
 

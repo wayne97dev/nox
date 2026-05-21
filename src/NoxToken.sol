@@ -26,7 +26,10 @@ contract NoxToken is ERC20, ERC20Permit {
         _;
     }
 
-    constructor(address minter_) ERC20("Nox", "NOX") ERC20Permit("Nox") {
+    constructor(string memory name_, string memory symbol_, address minter_)
+        ERC20(name_, symbol_)
+        ERC20Permit(name_)
+    {
         minter = minter_;
     }
 

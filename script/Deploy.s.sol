@@ -26,56 +26,74 @@ import {StealthMining} from "../src/stealth/StealthMining.sol";
 contract Deploy is Script {
     uint160 internal constant HOOK_FLAGS = uint160(Hooks.AFTER_SWAP_FLAG | Hooks.AFTER_SWAP_RETURNS_DELTA_FLAG);
 
-    function run() external {
-        address poolManager = vm.envAddress("POOL_MANAGER");
-        address treasury = vm.envAddress("TREASURY");
-        address controller = vm.envAddress("CONTROLLER");
-        uint256 genesisWindow = vm.envUint("GENESIS_WINDOW");
-        uint256 deployerPk = vm.envUint("DEPLOYER_PK");
-        address deployer = vm.addr(deployerPk);
+    // Foundry routes salted `new X{salt}()` through the deterministic CREATE2 factory
+    // (forge-std exposes its address as CREATE2_FACTORY), so the hook address must be
+    // mined against THAT sender, not the deployer EOA.
 
-        bytes memory hookCreationCode = type(NoxHook).creationCode;
-        bytes memory hookArgs = abi.encode(poolManager, treasury);
-        (address expectedHook, bytes32 salt) = HookMiner.find(deployer, HOOK_FLAGS, hookCreationCode, hookArgs);
+    struct Deployed {
+        NoxHook hook;
+        NoxGenesis genesis;
+        NoxToken token;
+        StealthMining mining;
+        StealthRegistry registry;
+        StealthAnnouncer announcer;
+        NoxStealthSender stealthSender;
+    }
+
+    function run() external {
+        uint256 pk = vm.envUint("DEPLOYER_PK");
+        address deployer = vm.addr(pk);
+        address controller = vm.envAddress("CONTROLLER");
+
+        bytes memory hookArgs = abi.encode(vm.envAddress("POOL_MANAGER"), vm.envAddress("TREASURY"));
+        (address expectedHook, bytes32 salt) =
+            HookMiner.find(CREATE2_FACTORY, HOOK_FLAGS, type(NoxHook).creationCode, hookArgs);
 
         console.log("Deployer:           ", deployer);
-        console.log("PoolManager:        ", poolManager);
-        console.log("Treasury:           ", treasury);
         console.log("Controller:         ", controller);
-        console.log("Genesis window (s): ", genesisWindow);
         console.log("Expected hook addr: ", expectedHook);
         console.logBytes32(salt);
 
-        vm.startBroadcast(deployerPk);
-
-        NoxHook hook = new NoxHook{salt: salt}(IPoolManager(poolManager), treasury);
-        require(address(hook) == expectedHook, "hook addr mismatch");
-
-        NoxGenesis genesis = new NoxGenesis(IPoolManager(poolManager), IHooks(address(hook)), controller, genesisWindow);
-        NoxToken token = genesis.token();
-        StealthMining mining = genesis.mining();
-
-        StealthRegistry registry = new StealthRegistry();
-        StealthAnnouncer announcer = new StealthAnnouncer();
-        NoxStealthSender stealthSender = new NoxStealthSender(token, announcer, mining);
-
+        vm.startBroadcast(pk);
+        Deployed memory d = _deploy(salt, deployer, controller);
         vm.stopBroadcast();
 
+        require(address(d.hook) == expectedHook, "hook addr mismatch");
+        _log(d);
+    }
+
+    function _deploy(bytes32 salt, address deployer, address controller) internal returns (Deployed memory d) {
+        d.hook = new NoxHook{salt: salt}(IPoolManager(vm.envAddress("POOL_MANAGER")), vm.envAddress("TREASURY"));
+        d.genesis = new NoxGenesis(
+            vm.envOr("TOKEN_NAME", string("Nox")),
+            vm.envOr("TOKEN_SYMBOL", string("NOX")),
+            IPoolManager(vm.envAddress("POOL_MANAGER")),
+            IHooks(address(d.hook)),
+            controller,
+            vm.envUint("GENESIS_WINDOW")
+        );
+        d.token = d.genesis.token();
+        d.mining = d.genesis.mining();
+        d.registry = new StealthRegistry();
+        d.announcer = new StealthAnnouncer();
+        d.stealthSender = new NoxStealthSender(d.token, d.announcer, d.mining);
+
+        // Auto-wire mining if the deployer is also the controller; otherwise the
+        // controller must call mining.setStealthSender(stealthSender) post-deploy.
+        if (deployer == controller) {
+            d.mining.setStealthSender(address(d.stealthSender));
+        }
+    }
+
+    function _log(Deployed memory d) internal view {
         console.log("");
         console.log("=== Deployment complete ===");
-        console.log("NoxHook:           ", address(hook));
-        console.log("NoxGenesis:        ", address(genesis));
-        console.log("NoxToken:          ", address(token));
-        console.log("StealthMining:     ", address(mining));
-        console.log("StealthRegistry:   ", address(registry));
-        console.log("StealthAnnouncer:  ", address(announcer));
-        console.log("NoxStealthSender:  ", address(stealthSender));
-        console.log("");
-        console.log("NEXT: controller must call mining.setStealthSender(", address(stealthSender), ")");
-        console.log("");
-        console.log("Buyers call: genesis.mintGenesis{value: units * GENESIS_PRICE}(units)");
-        console.log("Seed: anyone can call genesis.seedPool() once cap is hit");
-        console.log("Stealth recv:  registry.registerKeys(0, metaAddress)");
-        console.log("Stealth send:  approve(stealthSender, amount) then sendStealthNox(...)");
+        console.log("NoxHook:           ", address(d.hook));
+        console.log("NoxGenesis:        ", address(d.genesis));
+        console.log("NoxToken:          ", address(d.token));
+        console.log("StealthMining:     ", address(d.mining));
+        console.log("StealthRegistry:   ", address(d.registry));
+        console.log("StealthAnnouncer:  ", address(d.announcer));
+        console.log("NoxStealthSender:  ", address(d.stealthSender));
     }
 }

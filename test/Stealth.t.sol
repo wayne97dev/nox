@@ -53,7 +53,7 @@ contract StealthTest is Test {
         require(deployed == expectedHook, "hook addr");
         hook = NoxHook(payable(deployed));
 
-        genesis = new NoxGenesis(poolManager, IHooks(address(hook)), controller, 7 days);
+        genesis = new NoxGenesis("Nox", "NOX", poolManager, IHooks(address(hook)), controller, 7 days);
         token = genesis.token();
         mining = genesis.mining();
 
@@ -194,7 +194,7 @@ contract StealthTest is Test {
 
     function test_mining_setSenderOnlyByController() public {
         // Spin up a fresh genesis so mining.stealthSender is unset.
-        NoxGenesis fresh = new NoxGenesis(poolManager, IHooks(address(hook)), controller, 7 days);
+        NoxGenesis fresh = new NoxGenesis("Nox", "NOX", poolManager, IHooks(address(hook)), controller, 7 days);
         StealthMining freshMining = fresh.mining();
 
         vm.prank(alice);
