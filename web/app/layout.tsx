@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/Header";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Providers } from "./providers";
+import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 const sans = Inter({
@@ -18,7 +19,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nox — Pay in the dark",
+  title: `${BRAND} — Pay in the dark`,
   description:
     "Privacy-themed token launch on Base. Genesis sale, Uniswap v4 hook, stealth payments with mining rewards.",
   icons: {

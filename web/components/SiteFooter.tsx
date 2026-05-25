@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
+import { BRAND } from "@/lib/brand";
 
 const WHITEPAPER_URL = "/Nox-Whitepaper.pdf";
 const X_URL = "https://x.com";
@@ -24,7 +25,7 @@ export function SiteFooter() {
                 <circle cx="16" cy="16" r="11" fill="none" stroke="url(#ftGrad)" strokeWidth="1.5" />
                 <path d="M22.5 11 A 7 7 0 1 0 22.5 21 A 5.5 5.5 0 1 1 22.5 11 Z" fill="url(#ftGrad)" />
               </svg>
-              <span className="font-mono text-base font-normal tracking-[0.2em] text-fog">NOX</span>
+              <span className="font-mono text-base font-normal tracking-[0.2em] text-fog">{BRAND}</span>
             </div>
             <p className="text-sm text-mist leading-relaxed">
               Privacy-themed token on Base. Genesis sale, Uniswap v4 hook, stealth payments with
@@ -53,7 +54,7 @@ export function SiteFooter() {
 
         <div className="mt-12 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-xs text-mist/70">
-            © {new Date().getFullYear()} Nox. No admin keys. No upgrades.
+            © {new Date().getFullYear()} {BRAND}. No admin keys. No upgrades.
           </span>
           <div className="flex items-center gap-1">
             <FooterIcon href={WHITEPAPER_URL} label="Whitepaper">
