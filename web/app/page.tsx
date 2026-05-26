@@ -3,6 +3,7 @@ import { Card } from "@/components/Card";
 import { Reveal } from "@/components/Reveal";
 import { Globe } from "@/components/Globe";
 import { ArrowRight, Coins, Eye, Sparkles, Lock, ShieldCheck } from "lucide-react";
+import { BRAND } from "@/lib/brand";
 
 export default function HomePage() {
   return (
@@ -124,6 +125,46 @@ export default function HomePage() {
             </Reveal>
           ))}
         </div>
+      </Section>
+
+      {/* ---------------- Why not a mixer ---------------- */}
+      <Section eyebrow="positioning" title="Why not a mixer?" subtitle="Same goal — privacy — opposite trade-offs.">
+        <Reveal>
+          <div className="nox-card p-0 overflow-x-auto">
+            <div className="min-w-[600px]">
+              {/* header */}
+              <div className="grid grid-cols-[1.1fr_1fr_1fr] border-b border-white/[0.08] text-xs font-mono uppercase tracking-wider">
+                <div className="px-4 py-3" />
+                <div className="px-4 py-3 text-mist/70 border-l border-white/[0.06]">Mixer</div>
+                <div className="px-4 py-3 text-glow border-l border-white/[0.06] bg-iris/[0.05]">{BRAND} stealth</div>
+              </div>
+              {/* rows */}
+              {[
+                { dim: "Mechanism", mixer: "Shared pool — funds mix with strangers'", nox: "One-time address via ECDH — no pool" },
+                { dim: "Hides", mixer: "The source (deposit ↔ withdrawal)", nox: "The recipient address" },
+                { dim: "Custody", mixer: "Trust the pool contract", nox: "Fully non-custodial" },
+                { dim: "Legal surface", mixer: "High — sanctions, dev prosecutions", nox: "Low — neutral ERC-5564 standard" },
+                { dim: "Taint / delisting", mixer: "Funds flagged 'from a mixer'", nox: "No shared pool to taint" },
+                { dim: "Native incentive", mixer: "None", nox: "Mining — 1,000 NOX per send" },
+              ].map((r) => (
+                <div
+                  key={r.dim}
+                  className="grid grid-cols-[1.1fr_1fr_1fr] border-b border-white/[0.04] last:border-b-0 text-sm"
+                >
+                  <div className="px-4 py-3 text-fog font-normal">{r.dim}</div>
+                  <div className="px-4 py-3 text-mist font-light border-l border-white/[0.06]">{r.mixer}</div>
+                  <div className="px-4 py-3 text-fog font-light border-l border-white/[0.06] bg-iris/[0.04]">{r.nox}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={90}>
+          <p className="mt-6 text-center text-sm text-mist/70 font-light max-w-2xl mx-auto leading-relaxed">
+            <span className="text-fog">Honest limit:</span> stealth hides the recipient — not the sender or amount.
+            For full privacy, {BRAND} integrates <span className="text-iris">Railgun</span> (zk shielded pool) as an opt-in layer.
+          </p>
+        </Reveal>
       </Section>
 
       {/* ---------------- Closing CTA ---------------- */}

@@ -1,0 +1,74 @@
+NOX vs. THE COMPETITION — STEALTH ADDRESSES vs. MIXERS
+=======================================================
+
+Mixers (Tornado Cash being the archetype) buy privacy by pooling
+everyone's funds together: you deposit, wait, and withdraw to a clean
+address. It works — but it carries three problems that are fatal for a
+project meant to last. NOX takes a different route: stealth addresses
+(the ERC-5564 standard), privacy on the receiver's side, without ever
+touching anyone else's money.
+
+
+SIDE BY SIDE
+------------
+
+                     | Mixer (e.g. Tornado)         | NOX stealth address          | NOX + Railgun (opt-in)
+---------------------+------------------------------+------------------------------+----------------------------
+ How it works        | Shared pool: deposit         | One-time address derived     | zk shielded pool
+                     | alongside others, withdraw   | via ECDH — no pool           | (zero-knowledge proofs)
+                     | to a fresh address           |                              |
+ What it hides       | Source (deposit <-> exit)    | The recipient address        | Sender + amount + recipient
+ Third-party funds   | Yes — commingling            | No, never                    | Yes, w/ proof-of-innocence
+ Custody             | Trust the pool contract      | Fully non-custodial          | Non-custodial (zk)
+ Legal surface       | High (see precedents)        | Low — neutral standard       | Medium
+ Taint / delisting   | High ("from a mixer")        | Low                          | Medium
+ Privacy strength    | High (anonymity set)         | Medium (sender/amt public)   | High
+ Native incentive    | None                         | Mining — 1,000 NOX / tx      | —
+
+
+WHY WE CHOSE STEALTH ADDRESSES
+------------------------------
+
+1) NO COMMINGLING = FAR LOWER LEGAL SURFACE
+   A mixer pools strangers' money together — and it is exactly that
+   "mixing of third-party funds" that makes it look, to regulators, like
+   an unlicensed money transmitter. The precedents are heavy: OFAC
+   sanctioned Tornado Cash (Aug 2022); in the Netherlands, developer
+   Alexey Pertsev was CONVICTED of money laundering (May 2024); in the
+   US, criminal charges were brought against the founders. The decisive
+   detail: even after the protocol sanctions were partly overturned in
+   court and the entity was delisted (2025), the criminal cases against
+   the developers continued. So the risk is not a blocklist — it is
+   PERSONAL and ARCHITECTURAL. Stealth addresses pool nothing: they are
+   just a way to compute a receiving address. A neutral, standardized
+   primitive.
+
+2) PURELY NON-CUSTODIAL, ZERO TAINT
+   With a mixer you hand funds to a shared pool contract; on withdrawal,
+   exchanges and chain-analysis can flag those funds as "coming from a
+   mixer" -> frozen accounts, rejected deposits. With NOX, funds go
+   DIRECTLY to your stealth address: no pool to sanction, no one else's
+   "dirty" coins attached to yours.
+
+3) STANDARD + INCENTIVE
+   Stealth addresses are ERC-5564 / ERC-6538: an Ethereum standard,
+   interoperable, that wallets are beginning to support. And NOX adds
+   what mixers lack: it REWARDS usage with mining (1,000 NOX per stealth
+   transaction, halving every 250k tx). You incentivize a legally
+   neutral technology — not a high-risk service.
+
+
+WHAT WE DON'T PROMISE (no smoke and mirrors)
+--------------------------------------------
+
+Stealth addresses hide the RECIPIENT, not everything: the SENDER and the
+AMOUNT stay public on-chain. A mixer with a large anonymity set hides
+more on that front. For users who want total privacy — sender AND amount
+— NOX integrates an opt-in zk shielded pool (Railgun), designed to stay
+compatible with compliance mechanisms. The user picks the level:
+
+    public  ->  stealth (recipient hidden)  ->  Railgun (everything hidden)
+
+
+--
+Positioning material, not legal advice.
