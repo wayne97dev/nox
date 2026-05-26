@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, usePublicClient } from "wagmi";
-import { bytesToHex, formatEther, type Hex } from "viem";
+import { bytesToHex, formatUnits, type Hex } from "viem";
 import { toast } from "sonner";
 import { Card } from "@/components/Card";
 import { Reveal } from "@/components/Reveal";
@@ -16,6 +16,7 @@ import {
   type DiscoveredPayment,
   type StealthKeys,
 } from "@/lib/stealth";
+import { assetByAddress } from "@/lib/assets";
 import { Eye, RefreshCw, Inbox, Copy, KeyRound } from "lucide-react";
 
 const SCAN_BLOCK_RANGE = 50_000n; // window per getLogs call
@@ -67,14 +68,10 @@ export default function ReceiveStealthPage() {
       }
 
       const found = scanAnnouncements(keys, announcements);
-      // Filter to NOX payments only
-      const filtered = found.filter(
-        (p) => p.token.toLowerCase() === ADDRESSES.noxToken.toLowerCase(),
-      );
-      setPayments(filtered);
+      setPayments(found);
       toast.success(
-        filtered.length > 0
-          ? `Found ${filtered.length} stealth payment${filtered.length === 1 ? "" : "s"} 🎉`
+        found.length > 0
+          ? `Found ${found.length} stealth payment${found.length === 1 ? "" : "s"} 🎉`
           : "No stealth payments found",
       );
     } catch (e) {
@@ -170,6 +167,15 @@ export default function ReceiveStealthPage() {
   );
 }
 
+function formatAmount(token: string, amount: bigint): string {
+  const a = assetByAddress(token);
+  if (a) {
+    return `${Number(formatUnits(amount, a.decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${a.symbol}`;
+  }
+  // Unknown token — show raw 18-decimal value and flag it.
+  return `${Number(formatUnits(amount, 18)).toLocaleString()} (unknown)`;
+}
+
 function PaymentRow({ payment }: { payment: DiscoveredPayment }) {
   return (
     <Card hover>
@@ -183,7 +189,7 @@ function PaymentRow({ payment }: { payment: DiscoveredPayment }) {
         <div className="text-right shrink-0">
           <div className="text-xs text-mist">Amount</div>
           <div className="font-mono text-lg font-normal gradient-text">
-            +{Number(formatEther(payment.amount)).toLocaleString()} NOX
+            +{formatAmount(payment.token, payment.amount)}
           </div>
         </div>
       </div>
@@ -195,7 +201,7 @@ function PaymentRow({ payment }: { payment: DiscoveredPayment }) {
         </summary>
         <div className="mt-3 rounded-lg border border-violet/30 bg-violet/5 p-3 text-xs">
           <div className="text-violet mb-1">
-            Import this into a fresh wallet to spend the NOX above.
+            Import this into a fresh wallet to spend the funds above.
           </div>
           <div className="flex items-center gap-2">
             <code className="flex-1 break-all font-mono text-fog">

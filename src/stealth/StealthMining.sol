@@ -4,10 +4,11 @@ pragma solidity 0.8.26;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title StealthMining
-/// @notice Holds the 200M NOX mining supply and pays a flat per-transaction reward to the
-///         sender every time `NoxStealthSender.sendStealthNox` is invoked. Reward halves
-///         every `ERA_TX_COUNT` stealth transactions (Bitcoin-style halving) so emission is
-///         predictable and asymptotes at `MINING_SUPPLY`.
+/// @notice Holds the 500M NOX mining supply and pays a per-transaction reward to the sender
+///         each time `NoxStealthSender.sendStealthNox` moves at least `MIN_REWARDED_AMOUNT`
+///         NOX. Reward halves every `ERA_TX_COUNT` rewarded transactions (Bitcoin-style) so
+///         emission is predictable and asymptotes at `MINING_SUPPLY`. Sends below the
+///         threshold — and non-NOX stealth sends (ETH/USDC) — still work but earn nothing.
 ///
 /// Wiring:
 ///   - Deployed by NoxGenesis in its constructor; immutable token reference.
@@ -19,8 +20,9 @@ contract StealthMining {
     address public immutable controller;
 
     uint256 public constant MINING_SUPPLY = 500_000_000 ether;
-    uint256 public constant INITIAL_REWARD = 1_000 ether; // 1,000 NOX per stealth tx in era 0
-    uint256 public constant ERA_TX_COUNT = 250_000; // halving every 250k stealth tx
+    uint256 public constant INITIAL_REWARD = 500 ether; // 500 NOX per qualifying stealth tx in era 0
+    uint256 public constant ERA_TX_COUNT = 500_000; // halving every 500k rewarded stealth tx
+    uint256 public constant MIN_REWARDED_AMOUNT = 1_000 ether; // NOX sends below this earn no reward (anti-dust)
 
     address public stealthSender;
     uint256 public txCount;
@@ -49,10 +51,15 @@ contract StealthMining {
         emit StealthSenderSet(_sender);
     }
 
-    /// @notice Called by NoxStealthSender after a successful stealth transfer. Pays the
-    ///         current-era reward to `to`. Silently returns 0 once supply is exhausted.
-    function recordAndReward(address to) external returns (uint256 reward) {
+    /// @notice Called by NoxStealthSender after a successful NOX stealth transfer. Pays the
+    ///         current-era reward to `to` when `amount >= MIN_REWARDED_AMOUNT`. Silently
+    ///         returns 0 below the threshold or once supply is exhausted.
+    function recordAndReward(address to, uint256 amount) external returns (uint256 reward) {
         if (msg.sender != stealthSender) revert NotStealthSender();
+
+        // Sub-threshold sends still go through (privacy intact) but earn nothing and do
+        // not advance the halving — this neutralizes dust-spam mining.
+        if (amount < MIN_REWARDED_AMOUNT) return 0;
 
         uint256 era = txCount / ERA_TX_COUNT;
         if (era >= 256) {

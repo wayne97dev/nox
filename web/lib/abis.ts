@@ -231,6 +231,32 @@ export const noxStealthSenderAbi = [
     ],
     outputs: [{ name: "reward", type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "sendStealthToken",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "token", type: "address" },
+      { name: "schemeId", type: "uint256" },
+      { name: "stealthAddress", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "ephemeralPubKey", type: "bytes" },
+      { name: "viewTag", type: "bytes1" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "sendStealthETH",
+    stateMutability: "payable",
+    inputs: [
+      { name: "schemeId", type: "uint256" },
+      { name: "stealthAddress", type: "address" },
+      { name: "ephemeralPubKey", type: "bytes" },
+      { name: "viewTag", type: "bytes1" },
+    ],
+    outputs: [],
+  },
 ] as const;
 
 export const stateViewAbi = [
@@ -304,5 +330,12 @@ export const stealthMiningAbi = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "address" }],
+  },
+  {
+    type: "function",
+    name: "MIN_REWARDED_AMOUNT",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
   },
 ] as const;

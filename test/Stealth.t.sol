@@ -163,7 +163,7 @@ contract StealthTest is Test {
 
         assertEq(mining.txCount(), eraBoundary - 1, "slot 1 should be txCount");
 
-        uint256 amount = 1 ether;
+        uint256 amount = 1_000 ether; // must clear MIN_REWARDED_AMOUNT to earn a reward
         bytes memory ephemeral = hex"0322222222222222222222222222222222222222222222222222222222222222ff";
         vm.prank(alice);
         token.approve(address(sender), amount * 2);
@@ -182,7 +182,7 @@ contract StealthTest is Test {
     function test_mining_onlyCallableByStealthSender() public {
         vm.prank(alice);
         vm.expectRevert(StealthMining.NotStealthSender.selector);
-        mining.recordAndReward(alice);
+        mining.recordAndReward(alice, 1_000 ether);
     }
 
     function test_mining_setSenderOnlyOnce() public {
@@ -207,6 +207,72 @@ contract StealthTest is Test {
         vm.expectRevert(NoxStealthSender.ZeroAmount.selector);
         vm.prank(alice);
         sender.sendStealthNox(0, stealth, 0, ephemeral, 0x00);
+    }
+
+    function test_sendStealthNox_belowMinimum_movesTokensButNoReward() public {
+        uint256 amount = 999 ether; // below MIN_REWARDED_AMOUNT (1,000 NOX)
+        bytes memory ephemeral = hex"03a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1";
+
+        vm.prank(alice);
+        token.approve(address(sender), amount);
+
+        uint256 aliceBefore = token.balanceOf(alice);
+        uint256 stealthBefore = token.balanceOf(stealth);
+
+        vm.prank(alice);
+        uint256 reward = sender.sendStealthNox(0, stealth, amount, ephemeral, 0x00);
+
+        assertEq(reward, 0, "below threshold earns nothing");
+        assertEq(token.balanceOf(alice), aliceBefore - amount, "no reward credited");
+        assertEq(token.balanceOf(stealth), stealthBefore + amount, "tokens still delivered");
+        assertEq(mining.txCount(), 0, "halving counter not advanced");
+        assertEq(mining.totalMined(), 0);
+    }
+
+    function test_sendStealthToken_movesTokensNoReward() public {
+        // Generic ERC-20 path: route NOX itself through sendStealthToken — must NOT mine.
+        uint256 amount = 5_000 ether;
+        bytes memory ephemeral = hex"03b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2";
+        bytes1 viewTag = 0x11;
+
+        vm.prank(alice);
+        token.approve(address(sender), amount);
+
+        uint256 aliceBefore = token.balanceOf(alice);
+        uint256 stealthBefore = token.balanceOf(stealth);
+
+        bytes memory expectedMetadata = abi.encodePacked(viewTag, address(token), amount);
+        vm.expectEmit(true, true, true, true);
+        emit StealthAnnouncer.Announcement(0, stealth, address(sender), ephemeral, expectedMetadata);
+
+        vm.prank(alice);
+        sender.sendStealthToken(address(token), 0, stealth, amount, ephemeral, viewTag);
+
+        assertEq(token.balanceOf(alice), aliceBefore - amount, "no reward via generic path");
+        assertEq(token.balanceOf(stealth), stealthBefore + amount);
+        assertEq(mining.txCount(), 0, "generic token send does not mine");
+        assertEq(mining.totalMined(), 0);
+    }
+
+    function test_sendStealthETH_movesEthNoReward() public {
+        uint256 amount = 1 ether;
+        bytes memory ephemeral = hex"03c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3";
+        bytes1 viewTag = 0x22;
+        address native = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
+        vm.deal(alice, amount);
+        uint256 stealthEthBefore = stealth.balance;
+
+        bytes memory expectedMetadata = abi.encodePacked(viewTag, native, amount);
+        vm.expectEmit(true, true, true, true);
+        emit StealthAnnouncer.Announcement(0, stealth, address(sender), ephemeral, expectedMetadata);
+
+        vm.prank(alice);
+        sender.sendStealthETH{value: amount}(0, stealth, ephemeral, viewTag);
+
+        assertEq(stealth.balance, stealthEthBefore + amount, "ETH delivered to stealth address");
+        assertEq(mining.txCount(), 0, "ETH send does not mine");
+        assertEq(mining.totalMined(), 0);
     }
 
     // ------------------------------------------------------------------
